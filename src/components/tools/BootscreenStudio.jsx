@@ -337,7 +337,7 @@ export default function BootscreenStudio() {
       await agentApi.writeConfiguration(configFile, c, cfg.sha256); log.push(`✓ Configuration préparée : ${configFile}.`);
       if (showBoot && imageSrc) { await agentApi.writeFile("_Bootscreen.h", generateBootscreen(), undefined, true); log.push("✓ _Bootscreen.h installé."); }
       if (enableStatus && imageSrc) { await agentApi.writeFile("_Statusscreen.h", generateStatus(), undefined, true); log.push("✓ _Statusscreen.h installé."); }
-      log.push("✓ Modules sélectionnés intégrés. Lance maintenant Validation ou Build.");
+      log.push("✓ Modules sélectionnés intégrés. Lance maintenant Marlin Doctor ou Build.");
       setIntegrationLog(log); setStatus("✓ Pack d'intégration installé."); window.dispatchEvent(new Event("marlin-project-changed"));
     } catch (e) { log.push(`⚠ ${e.message}`); setIntegrationLog(log); setStatus(`⚠ ${e.message}`); }
     finally { setBusy(false); }

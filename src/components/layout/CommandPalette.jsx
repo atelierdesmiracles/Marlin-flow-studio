@@ -19,16 +19,26 @@ export default function CommandPalette({ open, onClose, setView }) {
 
   const params = currentProject?.allParameters || [];
   const commands = [
+    { id: "v:projects", label: "Accueil / gérer les projets", action: () => setView("projects") },
     { id: "v:dashboard", label: "Aller au tableau de bord", action: () => setView("dashboard") },
     { id: "v:config", label: "Aller à la configuration", action: () => setView("config") },
+    { id: "v:doctor", label: "Ouvrir Marlin Doctor", action: () => setView("doctor") },
     { id: "v:diff", label: "Ouvrir le comparateur", action: () => setView("diff") },
-    { id: "v:validation", label: "Ouvrir la validation", action: () => setView("validation") },
     { id: "v:history", label: "Voir l'historique", action: () => setView("history") },
     { id: "v:snapshots", label: "Gérer les snapshots", action: () => setView("snapshots") },
+    { id: "v:agent-build", label: "Agent & Build", action: () => setView("agent-build") },
+    { id: "v:printer", label: "Console imprimante", action: () => setView("printer") },
     { id: "v:code", label: "Éditeur de code", action: () => setView("code") },
     { id: "v:calculators", label: "Calculateurs", action: () => setView("calculators") },
     { id: "v:gcode", label: "Explorateur G-code", action: () => setView("gcode") },
     { id: "v:docs", label: "Documentation", action: () => setView("docs") },
+    { id: "v:bootscreen", label: "Bootscreen Studio", action: () => setView("bootscreen") },
+    { id: "v:speaker", label: "Speaker Studio", action: () => setView("speaker") },
+    { id: "v:vibration", label: "Vibration Studio", action: () => setView("vibration") },
+    { id: "v:migration", label: "Import / Migration", action: () => setView("migration") },
+    { id: "v:git", label: "Git", action: () => setView("git") },
+    { id: "v:browser", label: "Navigateur", action: () => setView("browser") },
+    { id: "v:settings", label: "Paramètres", action: () => setView("settings") },
   ];
 
   const paramResults = q

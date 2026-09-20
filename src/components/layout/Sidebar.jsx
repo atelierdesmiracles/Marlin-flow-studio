@@ -1,27 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { Search, Command, Settings, LayoutDashboard, GitCompareArrows, History, Camera, Calculator, Terminal, BookOpen, ShieldCheck, FileCode2, Image, Music2, Activity, ChevronLeft, ChevronRight, Cpu, Globe } from "lucide-react";
+import React from "react";
+import { LayoutDashboard, Settings, GitCompareArrows, History, Camera, Calculator, Terminal, BookOpen, FileCode2, Image, Music2, Activity, ChevronLeft, ChevronRight, Cpu, Globe, FolderOpen, Hammer, Printer, ArrowRightLeft, GitBranch, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
+  { id: "projects", label: "Accueil / Projets", icon: FolderOpen },
   { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { id: "config", label: "Configuration", icon: Settings },
-  { id: "agent", label: "Agent local", icon: Activity },
-  { id: "doctor", label: "Marlin Doctor", icon: ShieldCheck },
-  { id: "browser", label: "Navigateur", icon: Globe },
+  { id: "doctor", label: "Marlin Doctor", icon: Stethoscope },
   { id: "diff", label: "Comparateur", icon: GitCompareArrows },
-  { id: "validation", label: "Validation", icon: ShieldCheck },
   { id: "history", label: "Historique", icon: History },
   { id: "snapshots", label: "Snapshots", icon: Camera },
+  { id: "printer", label: "Console imprimante", icon: Printer },
+  { id: "gcode", label: "G-code", icon: Terminal },
   { id: "code", label: "Éditeur code", icon: FileCode2 },
   { id: "calculators", label: "Calculateurs", icon: Calculator },
-  { id: "gcode", label: "G-code", icon: Terminal },
   { id: "docs", label: "Documentation", icon: BookOpen },
   { id: "bootscreen", label: "Bootscreen Studio", icon: Image },
   { id: "speaker", label: "Speaker Studio", icon: Music2 },
   { id: "vibration", label: "Vibration Studio", icon: Activity },
-];
+  { id: "migration", label: "Import / Migration", icon: ArrowRightLeft },
+  { id: "git", label: "Git", icon: GitBranch },
+  { id: "agent-build", label: "Agent & Build", icon: Hammer },
+  { id: "browser", label: "Navigateur", icon: Globe },
+  { id: "settings", label: "Paramètres", icon: Settings },
+]
 
-export default function Sidebar({ view, setView, collapsed, setCollapsed, modifiedCount, warningCount, errorCount }) {
+export default function Sidebar({ view, setView, collapsed, setCollapsed, modifiedCount }) {
   return (
     <aside
       className={cn(
@@ -36,7 +40,7 @@ export default function Sidebar({ view, setView, collapsed, setCollapsed, modifi
         {!collapsed && (
           <div className="leading-tight overflow-hidden">
             <div className="text-sm font-semibold truncate">Marlin Flow Studio</div>
-            <div className="text-[10px] text-muted-foreground truncate">NG · v2.8.0 · 100% Local</div>
+            <div className="text-[10px] text-muted-foreground truncate">NG · v2.13.9 · 100% Local</div>
           </div>
         )}
       </div>
@@ -44,7 +48,7 @@ export default function Sidebar({ view, setView, collapsed, setCollapsed, modifi
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
-          const badge = item.id === "config" ? modifiedCount : item.id === "validation" ? warningCount + errorCount : null;
+          const badge = item.id === "config" ? modifiedCount : null;
           return (
             <button
               key={item.id}

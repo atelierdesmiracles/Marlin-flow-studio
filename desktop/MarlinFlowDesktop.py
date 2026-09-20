@@ -32,7 +32,7 @@ AGENT = "http://127.0.0.1:38765"
 BROWSER_PROFILE = APP_DIR / ".marlin-agent" / "browser-profile"
 DOWNLOADS = APP_DIR / "Downloads"
 SETTINGS_FILE = APP_DIR / ".marlin-agent" / "desktop-settings.json"
-WINDOW_TITLE = "Marlin Flow Studio — Local 1.5.1"
+WINDOW_TITLE = "Marlin Flow Studio — Local 2.13.6"
 
 
 class StaticHandler(SimpleHTTPRequestHandler):

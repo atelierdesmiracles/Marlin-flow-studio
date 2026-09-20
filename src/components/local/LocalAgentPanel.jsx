@@ -171,7 +171,7 @@ export default function LocalAgentPanel() {
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-7xl mx-auto space-y-5">
         <div className="flex items-start justify-between gap-4">
-          <div><h1 className="text-xl font-semibold flex items-center gap-2"><Activity className="w-5 h-5" /> Agent local</h1><p className="text-sm text-muted-foreground">Pont local sécurisé : fichiers Marlin, PlatformIO, Git et imprimante série.</p></div>
+          <div><h1 className="text-xl font-semibold flex items-center gap-2"><Activity className="w-5 h-5" /> Agent système</h1><p className="text-sm text-muted-foreground">Pont local sécurisé : fichiers Marlin, PlatformIO, Git et imprimante série.</p></div>
           <div className={cn("px-2.5 py-1 rounded-full text-xs font-medium", connected ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600")}>{connected ? "● CONNECTÉ" : "● DÉCONNECTÉ"}</div>
         </div>
 

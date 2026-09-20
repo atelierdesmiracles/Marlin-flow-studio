@@ -1,12 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useProject } from "@/lib/projectStore";
 import { DEPENDENCIES, PARAM_KNOWLEDGE, getCategoryMeta } from "@/lib/marlinKnowledge";
 import { cn } from "@/lib/utils";
-import { RotateCcw, ExternalLink, AlertTriangle, Link2, BookOpen } from "lucide-react";
+import { agentApi } from "@/lib/localAgent";
+import { RotateCcw, ExternalLink, AlertTriangle, Link2, BookOpen, Database, RefreshCw } from "lucide-react";
 
 export default function ParameterEditor() {
   const { currentProject, state, toggleParam, updateValue, resetParam } = useProject();
   const param = currentProject?.allParameters.find((p) => p.id === state.selectedParameterId);
+  const [smartOptions, setSmartOptions] = useState(null);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsError, setOptionsError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadOptions() {
+      if (!currentProject?.localProjectPath) {
+        setSmartOptions(null);
+        return;
+      }
+      setOptionsLoading(true);
+      setOptionsError("");
+      try {
+        const result = await agentApi.configurationOptions();
+        if (!cancelled) setSmartOptions(result);
+      } catch (error) {
+        if (!cancelled) {
+          setSmartOptions(null);
+          setOptionsError(error?.message || "Options dynamiques indisponibles");
+        }
+      } finally {
+        if (!cancelled) setOptionsLoading(false);
+      }
+    }
+    loadOptions();
+    return () => { cancelled = true; };
+  }, [currentProject?.localProjectPath]);
 
   if (!param) {
     return (
@@ -56,8 +85,37 @@ export default function ParameterEditor() {
         {/* Value control */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Valeur</label>
-          {renderControl(param, (v) => updateValue(currentProject.id, param.file, param, v))}
+          {renderControl(param, (v) => updateValue(currentProject.id, param.file, param, v), smartOptions)}
         </div>
+
+        {isSmartChoiceParameter(param.name) && (
+          <div className="flex items-start gap-2 rounded border border-primary/10 bg-primary/[0.03] p-2 text-[11px] text-muted-foreground">
+            <Database className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary" />
+            <div className="flex-1">
+              <div className="font-medium text-foreground">Choix assisté par le projet Marlin</div>
+              <div>La liste est construite à partir des sources du projet lorsque l'Agent local les trouve. La valeur actuelle est toujours conservée même si elle n'est pas reconnue.</div>
+              {optionsError && <div className="mt-1 text-amber-700 dark:text-amber-300">{optionsError}</div>}
+            </div>
+            {currentProject?.localProjectPath && (
+              <button
+                type="button"
+                disabled={optionsLoading}
+                onClick={async () => {
+                  setOptionsLoading(true);
+                  setOptionsError("");
+                  try { setSmartOptions(await agentApi.configurationOptions()); }
+                  catch (error) { setOptionsError(error?.message || "Impossible de relire les options du projet."); }
+                  finally { setOptionsLoading(false); }
+                }}
+                className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                title="Relire les choix depuis le projet Marlin"
+              >
+                <RefreshCw className={cn("w-3 h-3", optionsLoading && "animate-spin")} />
+                Relire
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Enabled toggle */}
         <div className="flex items-center justify-between py-2 border-y border-border">
@@ -131,26 +189,49 @@ export default function ParameterEditor() {
   );
 }
 
-function renderControl(param, onChange) {
+function renderControl(param, onChange, smartOptions) {
   const meta = PARAM_KNOWLEDGE[param.name];
-  const options = meta?.options;
+  const smart = getSmartControl(param, smartOptions);
+  const options = smart?.options?.length ? smart.options : (meta?.options || []);
 
   if (param.type === "flag") {
     return <div className="text-sm text-muted-foreground italic">Directive booléenne (activer/désactiver via l'état).</div>;
   }
-  if (options && options.length) {
+
+  if (options.length) {
     return (
-      <select
-        value={String(param.value)}
-        onChange={(e) => onChange(param.type === "number" ? Number(e.target.value) : e.target.value)}
-        className="w-full px-2 py-1.5 text-sm rounded border border-input bg-background font-mono"
-      >
-        {options.map((o) => (
-          <option key={o} value={String(o)}>{o}</option>
-        ))}
-      </select>
+      <div className="space-y-1.5">
+        <select
+          value={String(param.value)}
+          onChange={(e) => {
+            const raw = e.target.value;
+            const selected = options.find((o) => String(o.value) === raw);
+            const value = selected?.value ?? raw;
+            onChange(param.type === "number" || param.type === "float" ? Number(value) : value);
+          }}
+          className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+        >
+          {ensureCurrentOption(options, param.value).map((o) => (
+            <option key={String(o.value)} value={String(o.value)}>
+              {o.label || String(o.value)}
+            </option>
+          ))}
+        </select>
+        {smart?.source && (
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Database className="w-3 h-3" />
+            Source : <span className="font-mono">{smart.source}</span>
+          </div>
+        )}
+        {smart?.selectedDescription && (
+          <div className="rounded bg-muted/60 px-2.5 py-2 text-xs text-muted-foreground">
+            {smart.selectedDescription}
+          </div>
+        )}
+      </div>
     );
   }
+
   if (param.type === "string") {
     return <input value={param.value} onChange={(e) => onChange(e.target.value)} className="w-full px-2 py-1.5 text-sm rounded border border-input bg-background font-mono" />;
   }
@@ -175,6 +256,89 @@ function renderControl(param, onChange) {
       className="w-full px-2 py-1.5 text-sm rounded border border-input bg-background font-mono"
     />
   );
+}
+
+function ensureCurrentOption(options, value) {
+  const normalized = options.map((option) => typeof option === "object" ? option : ({ value: option, label: String(option) }));
+  if (normalized.some((option) => String(option.value) === String(value))) return normalized;
+  return [
+    { value, label: `Valeur actuelle — ${String(value)}`, description: "Valeur présente dans le fichier de configuration mais absente des choix détectés." },
+    ...normalized,
+  ];
+}
+
+function isSmartChoiceParameter(name) {
+  return name === "MOTHERBOARD"
+    || /^TEMP_SENSOR(?:_|$)/.test(name)
+    || name === "LCD_LANGUAGE"
+    || /^SERIAL_PORT(?:_\d+)?$/.test(name)
+    || name === "EXTRUDERS"
+    || /_DRIVER_TYPE$/.test(name)
+    || /_MICROSTEPS$/.test(name);
+}
+
+function getSmartControl(param, smartOptions) {
+  const name = param.name;
+  const base = { options: [], source: null, selectedDescription: null };
+  if (name === "MOTHERBOARD") {
+    const source = smartOptions?.board_source || "Marlin/src/core/boards.h";
+    const options = (smartOptions?.boards || []).map((board) => ({
+      value: board.value,
+      label: board.label ? `${board.value} — ${board.label}` : board.value,
+      description: board.description || "",
+    }));
+    return { ...base, options, source, selectedDescription: options.find((o) => String(o.value) === String(param.value))?.description || null };
+  }
+  if (/^TEMP_SENSOR(?:_|$)/.test(name)) {
+    const options = (smartOptions?.temperature_sensors || fallbackTemperatureSensors()).map((sensor) => ({
+      value: sensor.value,
+      label: sensor.label || String(sensor.value),
+      description: sensor.description || "",
+    }));
+    const source = smartOptions?.temperature_sensor_source || "liste Marlin + valeurs de compatibilité";
+    return { ...base, options, source, selectedDescription: options.find((o) => String(o.value) === String(param.value))?.description || null };
+  }
+  if (name === "LCD_LANGUAGE") return { ...base, options: smartOptions?.languages || fallbackLanguages(), source: "marlin/configuration + langues connues" };
+  if (/^SERIAL_PORT(?:_\d+)?$/.test(name)) return { ...base, options: smartOptions?.serial_ports || [], source: "Marlin / ports série" };
+  if (name === "EXTRUDERS") return { ...base, options: smartOptions?.extruders || [], source: "Marlin / configuration extrudeur" };
+  if (/_DRIVER_TYPE$/.test(name)) return { ...base, options: smartOptions?.drivers || [], source: "Marlin / drivers courants" };
+  if (/_MICROSTEPS$/.test(name)) return { ...base, options: smartOptions?.microsteps || [], source: "Marlin / microsteps" };
+  return base;
+}
+
+function fallbackTemperatureSensors() {
+  return [
+    { value: 0, label: "0 — Aucun capteur" },
+    { value: 1, label: "1 — 100k thermistor (EPCOS)" },
+    { value: 5, label: "5 — 100k thermistor (ATC Semitec 104GT-2)" },
+    { value: 11, label: "11 — 100k thermistor (QU-BD)" },
+    { value: 13, label: "13 — 100k thermistor (Hisens)" },
+    { value: 20, label: "20 — PT100 / PT1000 (selon interface)" },
+    { value: 51, label: "51 — thermistor 100k" },
+    { value: 55, label: "55 — thermocouple" },
+    { value: 60, label: "60 — PT100 / MAX31865" },
+    { value: 66, label: "66 — thermistor" },
+    { value: 67, label: "67 — thermistor" },
+    { value: 70, label: "70 — thermistor" },
+    { value: 998, label: "998 — thermocouple" },
+    { value: 999, label: "999 — thermocouple" },
+    { value: 1000, label: "1000 — capteur analogique" },
+  ];
+}
+
+function fallbackLanguages() {
+  return [
+    { value: "en", label: "English" },
+    { value: "fr", label: "Français" },
+    { value: "de", label: "Deutsch" },
+    { value: "es", label: "Español" },
+    { value: "it", label: "Italiano" },
+    { value: "pt", label: "Português" },
+    { value: "nl", label: "Nederlands" },
+    { value: "ru", label: "Русский" },
+    { value: "pl", label: "Polski" },
+    { value: "tr", label: "Türkçe" },
+  ];
 }
 
 function ArrayEditor({ value, onChange }) {

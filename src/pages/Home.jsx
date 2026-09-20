@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import CommandPalette from "@/components/layout/CommandPalette";
@@ -7,7 +7,6 @@ import ParameterList from "@/components/config/ParameterList";
 import ParameterEditor from "@/components/config/ParameterEditor";
 import CategoryInfo from "@/components/config/CategoryInfo";
 import DiffViewer from "@/components/config/DiffViewer";
-import ValidationPanel from "@/components/config/ValidationPanel";
 import HistoryPanel from "@/components/config/HistoryPanel";
 import SnapshotsPanel from "@/components/config/SnapshotsPanel";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -16,15 +15,20 @@ import Calculators from "@/components/tools/Calculators";
 import GCodeBrowser from "@/components/tools/GCodeBrowser";
 import FirmwareArtifactDialog from "@/components/local/FirmwareArtifactDialog";
 import DocumentationPanel from "@/components/tools/DocumentationPanel";
-import LocalAgentPanel from "@/components/local/LocalAgentPanel";
 import LocalBrowser from "@/components/tools/LocalBrowser";
 import BootscreenStudio from "@/components/tools/BootscreenStudio";
 import SpeakerStudio from "@/components/tools/SpeakerStudio";
 import VibrationStudio from "@/components/tools/VibrationStudio";
 import MarlinDoctor from "@/components/local/MarlinDoctor";
-import { useProject, validateProject, parseProject } from "@/lib/projectStore";
+import ProjectHub from "@/components/projects/ProjectHub";
+import MigrationPanel from "@/components/projects/MigrationPanel";
+import PrinterConsole from "@/components/local/PrinterConsole";
+import AgentBuildCenter from "@/components/local/AgentBuildCenter";
+import SettingsPanel from "@/components/tools/SettingsPanel";
+import GitPanel from "@/components/tools/GitPanel";
+import { useProject, parseProject } from "@/lib/projectStore";
 import { agentApi } from "@/lib/localAgent";
-import { X, Download, FileCode, FileJson, FileArchive, Play, Terminal, Cpu, AlertTriangle, XCircle } from "lucide-react";
+import { X, Download, FileCode, FileJson, FileArchive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -32,10 +36,10 @@ export default function Home() {
   const [collapsed, setCollapsed] = useState(false);
   const [palette, setPalette] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [buildOpen, setBuildOpen] = useState(false);
   const [localBusy, setLocalBusy] = useState(false);
   const [localMessage, setLocalMessage] = useState("");
-  const { currentProject, state, setSearch, updateProject, exportFile, dispatch } = useProject();
+  const autoRoutedRef = useRef(false);
+  const { currentProject, updateProject, exportFile, dispatch } = useProject();
 
   // On each desktop start / project switch, hydrate the entire UI from the real local project.
   useEffect(() => {
@@ -49,13 +53,16 @@ export default function Home() {
         const meta = p?.project;
         if (!meta?.path || !meta?.platformio_ini?.exists) return;
         const reads = await Promise.all([
+          agentApi.readConfiguration("Config.h").catch(() => null),
           agentApi.readConfiguration("Configuration.h").catch(() => null),
           agentApi.readConfiguration("Configuration_adv.h").catch(() => null),
         ]);
         if (disposed) return;
-        const h = reads[0];
-        const a = reads[1];
+        const minimal = reads[0];
+        const h = reads[1];
+        const a = reads[2];
         const files = {};
+        if (minimal?.content != null) files["Config.h"] = minimal.content;
         if (h?.content != null) files["Configuration.h"] = h.content;
         if (a?.content != null) files["Configuration_adv.h"] = a.content;
         if (!Object.keys(files).length) return;
@@ -80,6 +87,7 @@ export default function Home() {
             files,
             localProjectPath: projectPath,
             localHashes: {
+              ...(minimal?.sha256 ? { "Config.h": minimal.sha256 } : {}),
               ...(h?.sha256 ? { "Configuration.h": h.sha256 } : {}),
               ...(a?.sha256 ? { "Configuration_adv.h": a.sha256 } : {}),
             },
@@ -107,28 +115,39 @@ export default function Home() {
     function onKey(e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPalette(true); }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "p") { e.preventDefault(); setPalette(true); }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); /* autosaved */ }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); saveToLocalPC(); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  async function saveToLocalPC() {
+  async function saveToLocalPC({ throwOnError = false } = {}) {
     if (!currentProject) return;
     setLocalBusy(true);
     setLocalMessage("");
     try {
       const status = await agentApi.status();
       const nextHashes = { ...(currentProject.localHashes || {}) };
-      for (const file of ["Configuration.h", "Configuration_adv.h"]) {
-        if (!currentProject.parsedFiles[file]) continue;
-        const result = await agentApi.writeConfiguration(file, exportFile(currentProject.id, file), nextHashes[file]);
-        nextHashes[file] = result.sha256;
-      }
+      const parsedNames = Object.keys(currentProject.parsedFiles || {});
+      // Marlin >= 2.1.3 uses Config.h as the authoritative configuration and
+      // ignores Configuration.h / Configuration_adv.h when Config.h is present.
+      // Never write both models at once: doing so makes the UI appear to work
+      // while the build silently ignores the edited legacy headers.
+      const filesToWrite = parsedNames.includes("Config.h")
+        ? ["Config.h"]
+        : parsedNames.includes("Configuration.h")
+          ? parsedNames.filter((file) => ["Configuration.h", "Configuration_adv.h"].includes(file))
+          : [];
+      if (!filesToWrite.length) throw new Error("Aucun fichier de configuration Marlin modifiable n'est chargé.");
+      const files = Object.fromEntries(filesToWrite.map((file) => [file, exportFile(currentProject.id, file)]));
+      const expectedHashes = Object.fromEntries(filesToWrite.filter((file) => nextHashes[file]).map((file) => [file, nextHashes[file]]));
+      const result = await agentApi.applyConfiguration(files, expectedHashes);
+      for (const item of result.written || []) nextHashes[item.filename] = item.sha256;
       updateProject({ ...currentProject, localProjectPath: status.project_dir, localHashes: nextHashes, updatedDate: new Date().toISOString() });
       setLocalMessage("Configuration enregistrée sur le PC.");
     } catch (e) {
       setLocalMessage(e.message || "Impossible d'enregistrer sur le PC.");
+      if (throwOnError) throw e;
     } finally {
       setLocalBusy(false);
       window.setTimeout(() => setLocalMessage(""), 3500);
@@ -140,12 +159,16 @@ export default function Home() {
     setLocalMessage("");
     try {
       const p = await agentApi.project();
-      const [h, a] = await Promise.all([agentApi.readConfiguration("Configuration.h"), agentApi.readConfiguration("Configuration_adv.h")]);
+      const [minimal, h, a] = await Promise.all([agentApi.readConfiguration("Config.h").catch(() => null), agentApi.readConfiguration("Configuration.h").catch(() => null), agentApi.readConfiguration("Configuration_adv.h").catch(() => null)]);
+      const nextFiles = { ...(currentProject.files || {}) };
+      if (minimal?.content != null) nextFiles["Config.h"] = minimal.content;
+      if (h?.content != null) nextFiles["Configuration.h"] = h.content;
+      if (a?.content != null) nextFiles["Configuration_adv.h"] = a.content;
       const next = parseProject({
         ...currentProject,
-        files: { ...(currentProject.files || {}), "Configuration.h": h.content, "Configuration_adv.h": a.content },
+        files: nextFiles,
         localProjectPath: p.project?.path || currentProject.localProjectPath || "",
-        localHashes: { "Configuration.h": h.sha256, "Configuration_adv.h": a.sha256 },
+        localHashes: { ...(minimal?.sha256 ? { "Config.h": minimal.sha256 } : {}), ...(h?.sha256 ? { "Configuration.h": h.sha256 } : {}), ...(a?.sha256 ? { "Configuration_adv.h": a.sha256 } : {}) },
         updatedDate: new Date().toISOString(),
       });
       updateProject(next);
@@ -159,30 +182,33 @@ export default function Home() {
   }
 
   const modified = currentProject?.allParameters.filter((p) => p.modified).length || 0;
-  const { warnings, errors } = currentProject ? validateProject(currentProject) : { warnings: [], errors: [] };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <Sidebar view={view} setView={setView} collapsed={collapsed} setCollapsed={setCollapsed} modifiedCount={modified} warningCount={warnings.length} errorCount={errors.length} />
+      <Sidebar view={view} setView={setView} collapsed={collapsed} setCollapsed={setCollapsed} modifiedCount={modified} />
       <div className="flex flex-col flex-1 min-w-0">
-        <TopBar onCommand={() => setPalette(true)} onExport={() => setExportOpen(true)} onBuild={() => setBuildOpen(true)} onSaveLocal={saveToLocalPC} onReloadLocal={reloadFromLocalPC} localBusy={localBusy} />
+        <TopBar onCommand={() => setPalette(true)} onExport={() => setExportOpen(true)} onBuild={() => setView("agent-build")} onDoctor={() => setView("doctor")} onSaveLocal={saveToLocalPC} onReloadLocal={reloadFromLocalPC} localBusy={localBusy} />
         <main className="flex-1 min-h-0 overflow-hidden">
-          {view === "dashboard" && <Dashboard setView={setView} onExport={() => setExportOpen(true)} onBuild={() => setBuildOpen(true)} onImport={() => setView("agent")} />}
-          {view === "config" && <ConfigView />}
+          {view === "projects" && <ProjectHub onOpenProject={() => setView("dashboard")} />}
+          {view === "dashboard" && <Dashboard setView={setView} onExport={() => setExportOpen(true)} onBuild={() => setView("agent-build")} onImport={() => setView("projects")} />}
+          {view === "config" && <ConfigView onApply={saveToLocalPC} localBusy={localBusy} localMessage={localMessage} />}
+          {view === "doctor" && <MarlinDoctor />}
           {view === "diff" && <DiffViewer />}
-          {view === "validation" && <ValidationPanel />}
           {view === "history" && <HistoryPanel />}
           {view === "snapshots" && <SnapshotsPanel />}
+          {view === "agent-build" && <AgentBuildCenter ensureSaved={saveToLocalPC} />}
+          {view === "printer" && <PrinterConsole />}
+          {view === "gcode" && <GCodeBrowser />}
           {view === "code" && <CodeEditor />}
           {view === "calculators" && <Calculators />}
-          {view === "gcode" && <GCodeBrowser />}
           {view === "docs" && <DocumentationPanel />}
-          {view === "agent" && <LocalAgentPanel />}
-          {view === "doctor" && <MarlinDoctor />}
-          {view === "browser" && <LocalBrowser />}
           {view === "bootscreen" && <BootscreenStudio />}
           {view === "speaker" && <SpeakerStudio />}
           {view === "vibration" && <VibrationStudio />}
+          {view === "migration" && <MigrationPanel />}
+          {view === "git" && <GitPanel />}
+                    {view === "browser" && <LocalBrowser />}
+          {view === "settings" && <SettingsPanel />}
         </main>
       </div>
 
@@ -192,37 +218,43 @@ export default function Home() {
 
       <CommandPalette open={palette} onClose={() => setPalette(false)} setView={setView} />
       <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
-      <BuildModal open={buildOpen} onClose={() => setBuildOpen(false)} />
+      
     </div>
   );
 }
 
-function ConfigView() {
-  const { state, setSearch } = useProject();
+function ConfigView({ onApply, localBusy, localMessage }) {
+  const { state, setSearch, currentProject } = useProject();
+  const modified = currentProject?.allParameters?.filter((p) => p.modified).length || 0;
   return (
-    <div className="flex h-full">
-      {/* Left: tree + search */}
-      <div className="w-56 border-r border-border flex flex-col shrink-0 hidden md:flex">
-        <div className="p-2 border-b border-border">
-          <input
-            value={state.searchQuery}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer les paramètres…"
-            className="w-full px-2 py-1.5 text-sm rounded border border-input bg-background outline-none"
-          />
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <ConfigurationTree />
-        </div>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background shrink-0">
+        <div className="text-sm font-semibold">Configurateur Marlin</div>
+        <div className="text-xs text-muted-foreground">{currentProject?.parsedFiles?.["Configuration.h"] ? "Configuration.h / Configuration_adv.h" : (currentProject?.parsedFiles?.["Config.h"] ? "Config.h actif" : "Aucune configuration détectée")}</div>
+        <div className="text-xs text-muted-foreground">{modified} modification(s) en attente</div>
+        <div className="flex-1" />
+        {localMessage && <span className="text-xs text-muted-foreground truncate max-w-[360px]">{localMessage}</span>}
+        <button onClick={onApply} disabled={localBusy || !currentProject} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium disabled:opacity-40">
+          {localBusy ? "Écriture…" : "Appliquer au projet"}
+        </button>
       </div>
-      {/* Middle: list + contextual section documentation */}
-      <div className="w-80 border-r border-border shrink-0 hidden lg:flex lg:flex-col">
-        <CategoryInfo />
-        <div className="flex-1 min-h-0"><ParameterList /></div>
-      </div>
-      {/* Right: editor */}
-      <div className="flex-1 min-w-0">
-        <ParameterEditor />
+      <div className="flex flex-1 min-h-0">
+        <div className="w-56 border-r border-border flex flex-col shrink-0 hidden md:flex">
+          <div className="p-2 border-b border-border">
+            <input
+              value={state.searchQuery}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filtrer les paramètres…"
+              className="w-full px-2 py-1.5 text-sm rounded border border-input bg-background outline-none"
+            />
+          </div>
+          <div className="flex-1 overflow-hidden"><ConfigurationTree /></div>
+        </div>
+        <div className="w-80 border-r border-border shrink-0 hidden lg:flex lg:flex-col">
+          <CategoryInfo />
+          <div className="flex-1 min-h-0"><ParameterList /></div>
+        </div>
+        <div className="flex-1 min-w-0"><ParameterEditor /></div>
       </div>
     </div>
   );
@@ -251,10 +283,17 @@ function ExportModal({ open, onClose }) {
     download(`${currentProject.name.replace(/\s+/g, "_")}.mcfproject`, JSON.stringify(data, null, 2), "application/json");
   }
 
-  function exportReport() {
-    const { warnings, errors } = validateProject(currentProject);
+  async function exportReport() {
+    let doctor = null;
+    try { doctor = await agentApi.doctor(); } catch {}
     const modified = currentProject.allParameters.filter((p) => p.modified);
-    const report = `MARLIN CONFIGURATION REPORT\n==========================\n\nMachine: ${currentProject.model}\nFirmware: Marlin ${currentProject.marlinVersion}\nBoard: ${currentProject.board}\n\nModified: ${modified.length}\nWarnings: ${warnings.length}\nErrors: ${errors.length}\n\n--- Modified parameters ---\n${modified.map((p) => `${p.name} = ${p.type === "flag" ? (p.enabled ? "ON" : "OFF") : p.value} (${p.file})`).join("\n")}\n\n--- Warnings ---\n${warnings.map((w) => `[${w.level}] ${w.param}: ${w.message}`).join("\n") || "none"}\n\n--- Errors ---\n${errors.map((e) => `[${e.level}] ${e.param}: ${e.message}`).join("\n") || "none"}\n`;
+    const doctorSummary = doctor
+      ? `Marlin Doctor: ${doctor.ready ? "READY" : "ACTION REQUIRED"}\nWarnings: ${doctor.warnings ?? "—"}\nErrors: ${doctor.errors ?? "—"}`
+      : "Marlin Doctor: Unavailable";
+    const doctorChecks = (doctor?.checks || [])
+      .map((c) => `[${String(c.status || "").toUpperCase()}] ${c.label}: ${c.detail}${c.fix ? ` | Action: ${c.fix}` : ""}`)
+      .join("\n") || "Diagnostic indisponible. Lancez Marlin Doctor depuis l'application.";
+    const report = `MARLIN CONFIGURATION REPORT\n==========================\n\nMachine: ${currentProject.model}\nFirmware: Marlin ${currentProject.marlinVersion}\nBoard: ${currentProject.board}\n\nModified: ${modified.length}\n${doctorSummary}\n\n--- Modified parameters ---\n${modified.map((p) => `${p.name} = ${p.type === "flag" ? (p.enabled ? "ON" : "OFF") : p.value} (${p.file})`).join("\n") || "none"}\n\n--- Marlin Doctor ---\n${doctorChecks}\n`;
     download("config_report.txt", report);
   }
 
@@ -289,197 +328,5 @@ function ExportModal({ open, onClose }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function BuildModal({ open, onClose }) {
-  const { currentProject } = useProject();
-  const [envs, setEnvs] = useState([]);
-  const [envDetails, setEnvDetails] = useState([]);
-  const [environment, setEnvironment] = useState("");
-  const [logs, setLogs] = useState([]);
-  const [artifacts, setArtifacts] = useState([]);
-  const [selectedArtifact, setSelectedArtifact] = useState(null);
-  const [started, setStarted] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!open) {
-      setStarted(false);
-      setRunning(false);
-      setLogs([]);
-      setError("");
-      setSelectedArtifact(null);
-      return;
-    }
-
-    let alive = true;
-
-    const tick = async () => {
-      try {
-        const [environmentResult, logResult, statusResult, artifactResult] = await Promise.all([
-          agentApi.environments(),
-          agentApi.logs(250),
-          agentApi.status(),
-          agentApi.buildArtifacts(),
-        ]);
-
-        if (!alive) return;
-
-        const availableEnvironments = environmentResult.environments || [];
-        setEnvs(availableEnvironments);
-        setEnvDetails(environmentResult.environment_details || []);
-        setLogs(logResult.logs || []);
-        setArtifacts(artifactResult.artifacts || []);
-        setRunning(Boolean(statusResult.busy));
-        setEnvironment((previous) => previous || availableEnvironments[0] || "");
-      } catch (err) {
-        if (alive) setError(err?.message || "Agent local non connecté");
-      }
-    };
-
-    tick();
-    const timer = window.setInterval(tick, 1200);
-
-    return () => {
-      alive = false;
-      window.clearInterval(timer);
-    };
-  }, [open]);
-
-  async function startBuild() {
-    setStarted(true);
-    setRunning(true);
-    setError("");
-    try {
-      await agentApi.build(environment || undefined);
-    } catch (err) {
-      setRunning(false);
-      setError(err?.message || "Impossible de lancer la compilation");
-    }
-  }
-
-  async function stop() {
-    try {
-      await agentApi.stop();
-    } catch (err) {
-      setError(err?.message || "Arrêt impossible");
-    }
-  }
-
-  if (!open) return null;
-
-  const tail = logs.slice(-100);
-
-  return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-        <div
-          className="w-full max-w-3xl mx-4 bg-popover border border-border rounded-lg p-5"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold flex items-center gap-2">
-              <Play className="w-4 h-4" /> Compilation PlatformIO
-            </h2>
-            <button type="button" onClick={onClose} aria-label="Fermer">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <select
-              value={environment}
-              onChange={async (event) => {
-                const value = event.target.value;
-                setEnvironment(value);
-                try { await agentApi.selectEnvironment(value); } catch (err) { setError(err?.message || "Impossible de sélectionner l'environnement"); }
-              }}
-              className="flex-1 px-3 py-2 rounded border border-input bg-background text-sm"
-              disabled={running}
-            >
-              {envs.length ? (
-                envs.map((item) => { const d = envDetails.find(x => String(x.name).toLowerCase() === String(item).toLowerCase()); return <option key={item} value={item}>{item}{d?.source ? ` — ${d.source}` : ""}</option>; })
-              ) : (
-                <option value="">Agent / environnement indisponible</option>
-              )}
-            </select>
-
-            {!started ? (
-              <button
-                type="button"
-                onClick={startBuild}
-                disabled={!envs.length || running}
-                className="px-3 py-2 rounded bg-primary text-primary-foreground text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Lancer
-              </button>
-            ) : (
-              <button type="button" onClick={stop} disabled={!running} className="px-3 py-2 rounded border text-sm disabled:opacity-50">
-                Arrêter
-              </button>
-            )}
-          </div>
-
-          {error && (
-            <div className="mb-3 p-2.5 rounded bg-red-500/10 text-red-600 text-xs">
-              {error}
-            </div>
-          )}
-
-          <div className="h-[320px] overflow-auto p-3 rounded bg-slate-950 text-slate-200 font-mono text-[11px]">
-            {tail.length ? (
-              tail.map((line, index) => (
-                <div
-                  key={`${line.timestamp || "log"}-${index}`}
-                  className={cn(
-                    line.level === "error" && "text-red-400",
-                    line.level === "warning" && "text-amber-300",
-                    line.level === "success" && "text-emerald-300",
-                    line.level === "command" && "text-cyan-300",
-                  )}
-                >
-                  <span className="text-slate-500 mr-2">{line.timestamp}</span>
-                  {line.message}
-                </div>
-              ))
-            ) : (
-              <div className="text-slate-500">Aucun log pour le moment.</div>
-            )}
-          </div>
-
-          {artifacts.length > 0 && (
-            <div className="mt-3 rounded border border-border bg-muted/20 p-3">
-              <div className="text-xs font-semibold mb-2">Firmware détecté</div>
-              {artifacts.slice(0, 10).map((artifact) => (
-                <button
-                  type="button"
-                  key={artifact.path}
-                  onClick={() => setSelectedArtifact(artifact)}
-                  className="w-full text-left text-[11px] font-mono flex justify-between gap-3 rounded px-2 py-1.5 hover:bg-muted"
-                >
-                  <span className="truncate">{artifact.path}</span>
-                  <span className="shrink-0 text-muted-foreground">
-                    {(artifact.size / 1024).toFixed(1)} Ko · Enregistrer
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-3 text-xs text-muted-foreground flex justify-between">
-            <span>{currentProject?.name || "Projet actuel"}</span>
-            <span>{running ? "Compilation en cours…" : started ? "Terminé / arrêté" : "Prêt"}</span>
-          </div>
-        </div>
-      </div>
-
-      <FirmwareArtifactDialog
-        open={Boolean(selectedArtifact)}
-        artifact={selectedArtifact}
-        onClose={() => setSelectedArtifact(null)}
-      />
-    </>
   );
 }

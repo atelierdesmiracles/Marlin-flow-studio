@@ -141,6 +141,7 @@ export const CONFLICTS = [
 
 // Fichiers système canoniques du dépôt MarlinFirmware/Marlin (racine config)
 export const SYSTEM_FILES = [
+  { name: "Config.h", description: "Configuration minimale moderne (Marlin 2.1.3+). Lorsqu'il est présent, Marlin ignore Configuration.h et Configuration_adv.h.", required: false },
   { name: "Configuration.h", description: "Configuration principale du firmware.", required: true },
   { name: "Configuration_adv.h", description: "Configuration avancée et fonctionnalités optionnelles.", required: false },
   { name: "_Bootscreen.h", description: "Écran de démarrage personnalisé (bitmap).", required: false },

@@ -1,18 +1,17 @@
 import React,{useEffect,useState}from"react";
 import{agentApi}from"@/lib/localAgent";
-import { useProject, validateProject } from "@/lib/projectStore";
+import { useProject } from "@/lib/projectStore";
 import { cn } from "@/lib/utils";
 import { FolderOpen, FilePlus2, Upload, ScanLine, Settings, Play, Upload as UploadIcon, Terminal, GitCompareArrows, Download, Cpu, GitBranch, Save, Clock } from "lucide-react";
 
 export default function Dashboard({ setView, onExport, onBuild, onImport }) {
   const { currentProject, state } = useProject();
-  const [agent,setAgent]=useState(null); useEffect(()=>{let a=true;const load=()=>agentApi.status().then(x=>a&&setAgent(x)).catch(()=>a&&setAgent(null));load();const t=setInterval(load,2500);return()=>{a=false;clearInterval(t)}},[]);
+  const [agent,setAgent]=useState(null); const [doctor,setDoctor]=useState(null); useEffect(()=>{let a=true;const load=()=>agentApi.status().then(x=>{if(!a)return;setAgent(x);return agentApi.doctor().catch(()=>null)}).then(x=>a&&x&&setDoctor(x)).catch(()=>a&&setAgent(null));load();const t=setInterval(load,8000);return()=>{a=false;clearInterval(t)}},[]);
   if (!currentProject) return <div className="flex items-center justify-center h-full text-muted-foreground">Aucun projet. Créez ou ouvrez un projet.</div>;
 
   const params = currentProject.allParameters;
   const modified = params.filter((p) => p.modified).length;
   const enabled = params.filter((p) => p.enabled).length;
-  const { warnings, errors } = validateProject(currentProject);
   const lastSave = currentProject.updatedDate ? new Date(currentProject.updatedDate).toLocaleString() : "—";
   const lastOp = (state.history[currentProject.id] || [])[0];
 
@@ -28,20 +27,20 @@ export default function Dashboard({ setView, onExport, onBuild, onImport }) {
         <div className="flex flex-wrap gap-2">
           <Action icon={Settings} label="Configurer Marlin" onClick={() => setView("config")} primary />
           <Action icon={Play} label="Compiler" onClick={onBuild} />
-          <Action icon={UploadIcon} label="Téléverser" onClick={() => setView("gcode")} />
-          <Action icon={Terminal} label="Console série" onClick={() => setView("gcode")} />
+          <Action icon={UploadIcon} label="Téléverser" onClick={() => setView("agent-build")} />
+          <Action icon={Terminal} label="Console série" onClick={() => setView("printer")} />
           <Action icon={GitCompareArrows} label="Comparer" onClick={() => setView("diff")} />
           <Action icon={Download} label="Exporter" onClick={onExport} />
           <Action icon={Upload} label="Importer config" onClick={onImport} />
-          <Action icon={ScanLine} label="Scanner projet" onClick={() => setView("validation")} />
+          <Action icon={ScanLine} label="Marlin Doctor" onClick={() => setView("doctor")} />
         </div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Paramètres modifiés" value={modified} tone="blue" />
           <StatCard label="Paramètres activés" value={enabled} tone="emerald" />
-          <StatCard label="Warnings" value={warnings.length} tone="amber" />
-          <StatCard label="Erreurs" value={errors.length} tone="red" />
+          <StatCard label="Doctor · warnings" value={doctor?.warnings ?? "—"} tone="amber" />
+          <StatCard label="Doctor · erreurs" value={doctor?.errors ?? "—"} tone="red" />
         </div>
 
         {/* Project info */}
@@ -57,7 +56,7 @@ export default function Dashboard({ setView, onExport, onBuild, onImport }) {
           <Card title="Statut">
             <StatusRow label="Build" value={agent?.busy?"EN COURS":agent?.platformio_installed?"PRÊT":"PIO ABSENT"} tone={agent?.busy?"amber":agent?.platformio_installed?"emerald":"muted"} />
             <StatusRow label="Git" value="LOCAL" tone="muted" />
-            <StatusRow label="Validation" value={errors.length ? "BLOQUÉ" : "PRÊT"} tone={errors.length ? "red" : "emerald"} />
+            <StatusRow label="Marlin Doctor" value={doctor ? (doctor.ready ? "PRÊT" : "À CORRIGER") : "NON ANALYSÉ"} tone={doctor ? (doctor.ready ? "emerald" : "red") : "muted"} />
             <StatusRow label="Agent local" value={agent?"CONNECTÉ":"NON CONNECTÉ"} tone={agent?"emerald":"muted"} />
             <StatusRow label="Série" value={agent?.serial_connected?agent.serial_port:"DÉCONNECTÉ"} tone={agent?.serial_connected?"emerald":"muted"} />
           </Card>

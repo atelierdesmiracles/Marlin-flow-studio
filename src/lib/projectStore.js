@@ -1,7 +1,7 @@
 // Project store: global state via React context + localStorage persistence.
 import React, { createContext, useContext, useEffect, useReducer } from "react";
 import { parseMarlinFile, serializeMarlinFile, toggleParameter, updateParameterValue, resetParameter } from "./marlinParser";
-import { getCategoryForParam, getMeta, DEPENDENCIES, CONFLICTS } from "./marlinKnowledge";
+import { getCategoryForParam, getMeta } from "./marlinKnowledge";
 import { DEMO_PROJECT } from "./demoData";
 
 const STORAGE_KEY = "mcfng:state:v2";
@@ -389,43 +389,6 @@ export function useProject() {
   const ctx = useContext(ProjectContext);
   if (!ctx) throw new Error("useProject must be used within ProjectProvider");
   return ctx;
-}
-
-// Validation engine
-export function validateProject(project) {
-  const warnings = [];
-  const errors = [];
-  const params = project.allParameters;
-  const enabled = (name) => params.some((p) => p.name === name && p.enabled);
-
-  // Dependencies
-  for (const p of params) {
-    if (!p.enabled) continue;
-    const deps = DEPENDENCIES[p.name];
-    if (deps) {
-      for (const d of deps) {
-        if (!enabled(d)) {
-          warnings.push({ level: "WARNING", param: p.name, message: `${p.name} nécessite ${d}, qui est désactivé.` });
-        }
-      }
-    }
-  }
-  // Conflicts
-  for (const c of CONFLICTS) {
-    const active = c.group.filter(enabled);
-    if (active.length > 1) {
-      errors.push({ level: "ERROR", param: active.join(", "), message: c.message });
-    }
-  }
-  // EEPROM without compatible board
-  if (enabled("EEPROM_SETTINGS") && project.board && /RAMPS|GEN6|GEN7/i.test(project.board)) {
-    warnings.push({ level: "WARNING", param: "EEPROM_SETTINGS", message: "EEPROM activée mais la carte peut ne pas supporter l'EEPROM." });
-  }
-  // Thermal protection off
-  if (!enabled("THERMAL_PROTECTION_HOTENDS")) {
-    warnings.push({ level: "WARNING", param: "THERMAL_PROTECTION_HOTENDS", message: "Protection thermique hotend désactivée — dangereux." });
-  }
-  return { warnings, errors };
 }
 
 export function computeDiff(project) {

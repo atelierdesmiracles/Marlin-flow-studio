@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Search, Play, Download, GitBranch, AlertTriangle, XCircle, HardDrive, RefreshCw, Circle } from "lucide-react";
-import { useProject, validateProject } from "@/lib/projectStore";
+import React, { useEffect, useState } from "react";
+import { Search, Play, Download, GitBranch, Stethoscope, HardDrive, RefreshCw, Circle } from "lucide-react";
+import { useProject } from "@/lib/projectStore";
 import { agentApi } from "@/lib/localAgent";
 import { cn } from "@/lib/utils";
 
-export default function TopBar({ onCommand, onExport, onBuild, onSaveLocal, onReloadLocal, localBusy }) {
+export default function TopBar({ onCommand, onExport, onBuild, onDoctor, onSaveLocal, onReloadLocal, localBusy }) {
   const { currentProject } = useProject();
   const [agentConnected, setAgentConnected] = useState(false);
   const [agentStatus, setAgentStatus] = useState(null);
@@ -29,10 +29,6 @@ export default function TopBar({ onCommand, onExport, onBuild, onSaveLocal, onRe
   }, []);
 
   const modified = currentProject?.allParameters.filter((p) => p.modified).length || 0;
-  const validation = useMemo(() => (currentProject ? validateProject(currentProject) : { warnings: [], errors: [] }), [currentProject]);
-  const warnings = validation.warnings.length;
-  const errors = validation.errors.length;
-
   return (
     <header className="h-12 flex items-center gap-2 px-3 border-b border-border bg-background shrink-0">
       <div className="flex items-center gap-2 min-w-0 mr-1">
@@ -57,13 +53,12 @@ export default function TopBar({ onCommand, onExport, onBuild, onSaveLocal, onRe
       <div className="hidden lg:flex items-center gap-3 text-xs">
         <span className="flex items-center gap-1 text-muted-foreground"><GitBranch className="w-3.5 h-3.5" /> {currentProject?.marlinVersion || "—"}</span>
         <span className={cn("flex items-center gap-1", modified > 0 ? "text-blue-500" : "text-muted-foreground")}>● {modified}</span>
-        <span className={cn("flex items-center gap-1", warnings > 0 ? "text-amber-500" : "text-muted-foreground")}><AlertTriangle className="w-3.5 h-3.5" />{warnings}</span>
-        <span className={cn("flex items-center gap-1", errors > 0 ? "text-red-500" : "text-muted-foreground")}><XCircle className="w-3.5 h-3.5" />{errors}</span>
       </div>
 
       <div className="flex items-center gap-1">
         <button onClick={onReloadLocal} disabled={localBusy || !agentConnected || !currentProject} className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Recharger depuis le PC"><RefreshCw className="w-3.5 h-3.5" /></button>
         <button onClick={onSaveLocal} disabled={localBusy || !agentConnected || !currentProject} className="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md border border-border hover:bg-muted disabled:opacity-30" title="Enregistrer la configuration sur le PC"><HardDrive className="w-3.5 h-3.5" /> <span className="hidden lg:inline">PC</span></button>
+        <button onClick={onDoctor} disabled={!currentProject} className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md border border-border hover:bg-muted disabled:opacity-30" title="Ouvrir Marlin Doctor"><Stethoscope className="w-3.5 h-3.5" /> <span className="hidden xl:inline">Doctor</span></button>
         <button onClick={onExport} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md border border-border hover:bg-muted" title="Exporter"><Download className="w-3.5 h-3.5" /><span className="hidden md:inline">Exporter</span></button>
         <button onClick={onBuild} disabled={!currentProject} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30" title="Compiler"><Play className="w-3.5 h-3.5" /><span className="hidden md:inline">Compiler</span></button>
       </div>
