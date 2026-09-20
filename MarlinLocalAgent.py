@@ -33,6 +33,7 @@ import tempfile
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import venv
 import zipfile
@@ -49,7 +50,7 @@ except ImportError:  # pragma: no cover
     serial = None
 
 APP_NAME = "Marlin Flow Local Agent"
-AGENT_VERSION = "2.13.0"
+AGENT_VERSION = "2.13.9"
 ALLOWED_PROJECT_ORIGINS = set()
 HOST = "127.0.0.1"
 PORT = 38765
@@ -64,6 +65,8 @@ TOKEN_FILE = CONFIG_DIR / "token"
 STATE_FILE = CONFIG_DIR / "state.json"
 MARLIN_REPO = "https://github.com/MarlinFirmware/Marlin.git"
 MARLIN_API = "https://api.github.com/repos/MarlinFirmware/Marlin/releases"
+CONFIG_REPO = "https://github.com/MarlinFirmware/Configurations.git"
+CONFIG_GITHUB_API = "https://api.github.com/repos/MarlinFirmware/Configurations"
 
 
 class AgentState:
@@ -627,18 +630,24 @@ def safe_project_path(raw: str) -> Path:
 def config_path(filename: str) -> Path:
     if filename not in CONFIG_FILES:
         raise ValueError("Fichier de configuration non autorisé.")
-    candidates = [
-        STATE.project_dir / filename,
-        STATE.project_dir / "Marlin" / filename,
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return STATE.project_dir / "Marlin" / filename if (STATE.project_dir / "Marlin").is_dir() else candidates[0]
+    # A standard Marlin checkout keeps configuration files in <project>/Marlin.
+    # Prefer that canonical location when it exists, then support wrapper projects
+    # that place the files at the PlatformIO root.
+    canonical = STATE.project_dir / "Marlin" / filename
+    root = STATE.project_dir / filename
+    if canonical.exists():
+        return canonical
+    if root.exists():
+        return root
+    if (STATE.project_dir / "Marlin").is_dir():
+        return canonical
+    return root
 
 
 def _configuration_roots() -> list[Path]:
-    roots = [STATE.project_dir, STATE.project_dir / "Marlin"]
+    # Keep the canonical Marlin tree first so the UI never edits a similarly named
+    # wrapper/template file by mistake when both locations exist.
+    roots = [STATE.project_dir / "Marlin", STATE.project_dir]
     return [p for p in roots if p.is_dir()]
 
 
@@ -850,6 +859,172 @@ def read_text_file(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+
+def _find_project_source_file(*relative_candidates: str) -> Path | None:
+    """Find a source-tree file without leaving the active project."""
+    root = STATE.project_dir.resolve()
+    for rel in relative_candidates:
+        try:
+            candidate = (root / rel).resolve()
+            candidate.relative_to(root)
+        except (OSError, ValueError):
+            continue
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _parse_board_options() -> tuple[list[dict], str | None]:
+    """Read the actual BOARD_* identifiers from the selected Marlin source tree."""
+    path = _find_project_source_file(
+        "Marlin/src/core/boards.h",
+        "src/core/boards.h",
+    )
+    if not path:
+        return [], None
+
+    text = read_text_file(path)
+    found: dict[str, dict] = {}
+    # Canonical board IDs are numeric defines. Aliases or helper macros are kept
+    # out of the selector because they do not identify a concrete MCU pin map.
+    pattern = re.compile(
+        r"^\s*#define\s+(BOARD_[A-Za-z0-9_]+)\s+([0-9]+)\b(?:\s*//\s*(.*))?$",
+        re.MULTILINE,
+    )
+    for match in pattern.finditer(text):
+        name, board_id, comment = match.groups()
+        if name in found:
+            continue
+        label = (comment or "").strip()
+        # Some Marlin comments contain the board name after a separator.
+        found[name] = {
+            "value": name,
+            "label": label or name,
+            "id": int(board_id),
+            "description": label,
+            "source": path.relative_to(STATE.project_dir).as_posix(),
+        }
+
+    options = sorted(found.values(), key=lambda item: (item["label"].lower(), item["value"].lower()))
+    return options, path.relative_to(STATE.project_dir).as_posix()
+
+
+DEFAULT_TEMP_SENSOR_OPTIONS = [
+    {"value": 0, "label": "0 — Aucun capteur"},
+    {"value": 1, "label": "1 — 100k thermistor (EPCOS)"},
+    {"value": 5, "label": "5 — 100k thermistor (ATC Semitec 104GT-2)"},
+    {"value": 11, "label": "11 — 100k thermistor (QU-BD)"},
+    {"value": 13, "label": "13 — 100k thermistor (Hisens)"},
+    {"value": 20, "label": "20 — Pt100 / PT1000 (selon interface)"},
+    {"value": 51, "label": "51 — thermistor 100k"},
+    {"value": 55, "label": "55 — thermocouple MAX6675"},
+    {"value": 60, "label": "60 — PT100 / MAX31865"},
+    {"value": 66, "label": "66 — thermistor 4.7M / 100k"},
+    {"value": 67, "label": "67 — 100k thermistor"},
+    {"value": 70, "label": "70 — 100k thermistor"},
+    {"value": 75, "label": "75 — DHT / température auxiliaire"},
+    {"value": 998, "label": "998 — Thermocouple (MAX6675 / famille)"},
+    {"value": 999, "label": "999 — Thermocouple (MAX31855 / famille)"},
+    {"value": 1000, "label": "1000 — capteur analogique générique"},
+]
+
+
+def _parse_temp_sensor_options() -> tuple[list[dict], str | None]:
+    """Provide a project-aware temperature sensor selector with a safe fallback."""
+    path = _find_project_source_file(
+        "Marlin/src/module/thermistor/thermistortables.h",
+        "src/module/thermistor/thermistortables.h",
+    )
+    if not path:
+        return DEFAULT_TEMP_SENSOR_OPTIONS, None
+
+    text = read_text_file(path)
+    discovered: dict[int, dict] = {}
+
+    # Marlin's thermistor table file contains table-number guards and comments.
+    # Pick up common forms such as `#if THERMISTOR_ID == 1` and nearby headings.
+    lines = text.splitlines()
+    pending_comment: str | None = None
+    current_id: int | None = None
+    for raw in lines:
+        line = raw.strip()
+        if line.startswith("//"):
+            comment = re.sub(r"^//+\s?", "", line).strip()
+            if comment:
+                pending_comment = comment
+            continue
+        match = re.search(r"THERMISTOR_ID\s*==\s*(-?\d+)", line)
+        if match:
+            current_id = int(match.group(1))
+            if current_id not in discovered:
+                discovered[current_id] = {
+                    "value": current_id,
+                    "label": pending_comment or f"{current_id} — table thermistor",
+                    "description": pending_comment or "Table détectée dans thermistortables.h",
+                    "source": path.relative_to(STATE.project_dir).as_posix(),
+                }
+            pending_comment = None
+            continue
+        # Other Marlin revisions identify a table with `#define TEMP_SENSOR_x y`.
+        match = re.match(r"#define\s+TEMP_SENSOR(?:_\w+)?\s+(-?\d+)\b", line)
+        if match:
+            sid = int(match.group(1))
+            discovered.setdefault(sid, {
+                "value": sid,
+                "label": f"{sid} — table thermistor",
+                "description": "Valeur détectée dans le projet Marlin",
+                "source": path.relative_to(STATE.project_dir).as_posix(),
+            })
+
+    # Keep known, human-friendly labels even when the table parser cannot infer
+    # comments for a specific Marlin revision.
+    merged: dict[int, dict] = {int(item["value"]): dict(item) for item in DEFAULT_TEMP_SENSOR_OPTIONS}
+    for item in discovered.values():
+        merged[int(item["value"])] = item
+    return sorted(merged.values(), key=lambda item: int(item["value"])), path.relative_to(STATE.project_dir).as_posix()
+
+
+def configuration_options() -> dict:
+    boards, board_source = _parse_board_options()
+    sensors, sensor_source = _parse_temp_sensor_options()
+    return {
+        "success": True,
+        "boards": boards,
+        "board_source": board_source,
+        "temperature_sensors": sensors,
+        "temperature_sensor_source": sensor_source,
+        "languages": [
+            {"value": "en", "label": "English"},
+            {"value": "fr", "label": "Français"},
+            {"value": "de", "label": "Deutsch"},
+            {"value": "es", "label": "Español"},
+            {"value": "it", "label": "Italiano"},
+            {"value": "pt", "label": "Português"},
+            {"value": "nl", "label": "Nederlands"},
+            {"value": "ru", "label": "Русский"},
+            {"value": "pl", "label": "Polski"},
+            {"value": "tr", "label": "Türkçe"},
+        ],
+        "drivers": [
+            {"value": "A4988", "label": "A4988"},
+            {"value": "DRV8825", "label": "DRV8825"},
+            {"value": "TMC2208", "label": "TMC2208"},
+            {"value": "TMC2209", "label": "TMC2209"},
+            {"value": "TMC2130", "label": "TMC2130"},
+            {"value": "TMC5160", "label": "TMC5160"},
+            {"value": "LV8729", "label": "LV8729"},
+        ],
+        "microsteps": [
+            {"value": n, "label": str(n)} for n in (1, 2, 4, 8, 16, 32, 64, 128, 256)
+        ],
+        "baudrates": [
+            {"value": n, "label": f"{n:,}".replace(",", " ") + " bps"} for n in (9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000)
+        ],
+        "extruders": [{"value": n, "label": str(n)} for n in range(1, 9)],
+        "serial_ports": [{"value": n, "label": ("Désactivé (-1)" if n == -1 else str(n))} for n in (-1, 0, 1, 2, 3, 4, 5)],
+    }
+
+
 def read_config(filename: str) -> dict:
     path = config_path(filename)
     return {"filename": filename, "path": str(path), "content": read_text_file(path), "sha256": sha256(path)}
@@ -875,6 +1050,58 @@ def write_text_file(path: Path, content: str, expected_sha256: str | None = None
         shutil.copy2(path, backup_path)
     atomic_write_text(path, content)
     return {"path": str(path), "sha256": sha256(path), "backup": str(backup_path) if backup_path.exists() else None}
+
+
+def write_configuration_set(files: dict, expected_hashes: dict | None = None) -> dict:
+    """Write the selected Marlin configuration model as one guarded transaction.
+
+    All target files are validated before anything is replaced. Existing files get
+    individual .bak copies. If a later replacement fails, already replaced files
+    are restored from their backups. This prevents a half-written Configuration.h /
+    Configuration_adv.h pair.
+    """
+    if not isinstance(files, dict) or not files:
+        raise ValueError("Aucun fichier de configuration à écrire.")
+    expected_hashes = expected_hashes or {}
+    targets = []
+    for filename, content in files.items():
+        if filename not in CONFIG_FILES:
+            raise ValueError(f"Fichier de configuration non autorisé : {filename}")
+        if not isinstance(content, str):
+            raise ValueError(f"Contenu invalide pour {filename}.")
+        if len(content.encode("utf-8")) > MAX_TEXT_FILE:
+            raise ValueError(f"Contenu trop volumineux pour {filename}.")
+        path = config_path(filename)
+        if not path.exists():
+            raise FileNotFoundError(filename)
+        current = sha256(path)
+        expected = expected_hashes.get(filename)
+        if expected and current != expected:
+            raise RuntimeError(f"Le fichier {filename} a changé depuis sa dernière lecture.")
+        targets.append((filename, path, content))
+
+    backups = []
+    replaced = []
+    try:
+        for filename, path, content in targets:
+            backup_path = path.with_suffix(path.suffix + ".bak")
+            shutil.copy2(path, backup_path)
+            backups.append((path, backup_path))
+            atomic_write_text(path, content)
+            replaced.append(path)
+        results = []
+        for filename, path, _ in targets:
+            results.append({"filename": filename, "path": str(path), "sha256": sha256(path), "backup": str(path.with_suffix(path.suffix + ".bak"))})
+        STATE.log("Configuration Marlin appliquée sur le disque : " + ", ".join(x[0] for x in targets), "success")
+        return {"written": results, "backups": [str(b) for _, b in backups]}
+    except Exception:
+        for path, backup in reversed(backups):
+            try:
+                if backup.exists():
+                    shutil.copy2(backup, path)
+            except OSError:
+                pass
+        raise
 
 
 def list_files() -> list[dict]:
@@ -1223,10 +1450,18 @@ def git_status() -> dict:
             cwd=str(STATE.project_dir), capture_output=True, text=True, timeout=3,
         )
         changes = status_probe.stdout.splitlines() if status_probe.returncode == 0 else []
+        remote_probe = subprocess.run(
+            [git, "config", "--get", "remote.origin.url"],
+            cwd=str(STATE.project_dir), capture_output=True, text=True, timeout=2,
+        )
+        upstream = remote_probe.stdout.strip() if remote_probe.returncode == 0 else ""
+        upstream_name = "MarlinFirmware/Marlin" if "github.com/MarlinFirmware/Marlin" in upstream.replace(".git", "") else upstream
         return {
             "installed": True, "repository": True,
             "branch": branch_probe.stdout.strip(),
             "commit": commit_probe.stdout.strip(),
+            "remote": upstream_name or "",
+            "remote_url": upstream or "",
             "status": changes, "clean": not changes,
         }
     except subprocess.TimeoutExpired:
@@ -1245,6 +1480,186 @@ def git_pull_async() -> bool:
 
 def git_installed() -> bool:
     return bool(shutil.which("git"))
+
+
+def _github_json(url: str, timeout: int = 20):
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": f"MarlinFlowStudio/{AGENT_VERSION}",
+            "Accept": "application/vnd.github+json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        raise RuntimeError(f"GitHub HTTP {exc.code}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"GitHub inaccessible : {exc.reason}") from exc
+
+
+def _config_branch_kind(name: str) -> str:
+    if name.startswith("release-"):
+        return "release"
+    if name.startswith("bugfix-"):
+        return "development"
+    if name.startswith("import-"):
+        return "import"
+    if name.startswith("lts-"):
+        return "lts"
+    return "other"
+
+
+def marlin_config_branches() -> dict:
+    data = _github_json(f"{CONFIG_GITHUB_API}/branches?per_page=100", timeout=20)
+    branches = []
+    for item in data if isinstance(data, list) else []:
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        kind = _config_branch_kind(name)
+        if kind == "other":
+            continue
+        branches.append({
+            "name": name,
+            "kind": kind,
+            "protected": bool(item.get("protected", False)),
+            "sha": ((item.get("commit") or {}).get("sha") or ""),
+        })
+    order = {"release": 0, "lts": 1, "development": 2, "import": 3, "other": 4}
+    branches.sort(key=lambda x: (order.get(x["kind"], 9), x["name"]))
+    return {
+        "success": True,
+        "repository": "MarlinFirmware/Configurations",
+        "repository_url": "https://github.com/MarlinFirmware/Configurations",
+        "default_branch": "import-2.1.x",
+        "branches": branches,
+    }
+
+
+def _normalize_config_ref(ref: str | None) -> str:
+    value = str(ref or "").strip()
+    if not value or any(c in value for c in "\r\n") or len(value) > 200:
+        raise ValueError("Référence Git invalide.")
+    return value
+
+
+def _safe_remote_config_path(path: str) -> str:
+    value = str(path or "").strip().strip("/")
+    if not value.startswith("config/") or ".." in Path(value).parts or "\\" in value:
+        raise ValueError("Chemin de configuration distant invalide.")
+    return value
+
+
+def _configuration_remote_listing(ref: str, path: str) -> list[dict]:
+    ref = _normalize_config_ref(ref)
+    path = _safe_remote_config_path(path)
+    encoded = urllib.parse.quote(path, safe="/")
+    data = _github_json(f"{CONFIG_GITHUB_API}/contents/{encoded}?ref={urllib.parse.quote(ref, safe='')}", timeout=25)
+    if not isinstance(data, list):
+        raise RuntimeError("Le chemin distant ne correspond pas à un dossier GitHub.")
+    result = []
+    for item in data:
+        result.append({
+            "name": item.get("name"),
+            "path": item.get("path"),
+            "type": item.get("type"),
+            "size": item.get("size", 0),
+            "sha": item.get("sha"),
+            "html_url": item.get("html_url"),
+            "download_url": item.get("download_url"),
+        })
+    return result
+
+
+def marlin_config_examples(ref: str, path: str = "config/examples") -> dict:
+    ref = _normalize_config_ref(ref)
+    path = _safe_remote_config_path(path)
+    items = _configuration_remote_listing(ref, path)
+    directories = [x for x in items if x.get("type") == "dir"]
+    files = [x for x in items if x.get("type") == "file"]
+    directories.sort(key=lambda x: str(x.get("name") or "").lower())
+    files.sort(key=lambda x: str(x.get("name") or "").lower())
+    return {
+        "success": True,
+        "ref": ref,
+        "path": path,
+        "directories": directories,
+        "files": files,
+        "count": len(directories),
+        "repository": "MarlinFirmware/Configurations",
+    }
+
+
+def marlin_config_example(ref: str, path: str) -> dict:
+    ref = _normalize_config_ref(ref)
+    path = _safe_remote_config_path(path)
+    items = _configuration_remote_listing(ref, path)
+    directories = [x for x in items if x.get("type") == "dir"]
+    directories.sort(key=lambda x: str(x.get("name") or "").lower())
+    relevant = []
+    for item in items:
+        if item.get("type") != "file":
+            continue
+        name = str(item.get("name") or "")
+        if name in {"Config.h", "Configuration.h", "Configuration_adv.h", "platformio.ini", "README.md"} or name.endswith(".h"):
+            relevant.append(item)
+    relevant.sort(key=lambda x: str(x.get("name") or "").lower())
+    return {
+        "success": True,
+        "ref": ref,
+        "path": path,
+        "directories": directories,
+        "files": relevant,
+        "html_url": f"https://github.com/MarlinFirmware/Configurations/tree/{urllib.parse.quote(ref, safe='')}/{urllib.parse.quote(path, safe='/')}",
+    }
+
+
+def marlin_config_file(ref: str, path: str) -> dict:
+    ref = _normalize_config_ref(ref)
+    path = _safe_remote_config_path(path)
+    encoded = urllib.parse.quote(path, safe="/")
+    data = _github_json(f"{CONFIG_GITHUB_API}/contents/{encoded}?ref={urllib.parse.quote(ref, safe='')}", timeout=25)
+    if isinstance(data, list) or data.get("type") != "file":
+        raise RuntimeError("Le fichier distant est introuvable.")
+    import base64
+    raw = str(data.get("content") or "")
+    encoding = str(data.get("encoding") or "")
+    if encoding == "base64":
+        content = base64.b64decode(raw.replace("\n", "")).decode("utf-8", errors="replace")
+    elif data.get("download_url"):
+        req = urllib.request.Request(data["download_url"], headers={"User-Agent": f"MarlinFlowStudio/{AGENT_VERSION}"})
+        with urllib.request.urlopen(req, timeout=25) as response:
+            content = response.read().decode("utf-8", errors="replace")
+    else:
+        content = raw
+    return {
+        "success": True,
+        "ref": ref,
+        "path": path,
+        "name": data.get("name"),
+        "sha": data.get("sha"),
+        "size": data.get("size", len(content.encode("utf-8"))),
+        "content": content,
+        "html_url": data.get("html_url"),
+    }
+
+
+def marlin_config_suggest_ref(marlin_version: str | None = None) -> dict:
+    branches = marlin_config_branches().get("branches", [])
+    names = {x["name"] for x in branches}
+    version = str(marlin_version or "").strip()
+    candidates = []
+    if version and version != "inconnue":
+        candidates.extend([f"release-{version}", f"lts-{version}"])
+        parts = version.split(".")
+        if len(parts) >= 2:
+            candidates.extend([f"release-{'.'.join(parts[:2])}", f"lts-{'.'.join(parts[:2])}"])
+    candidates.extend(["bugfix-2.1.x", "import-2.1.x"])
+    selected = next((x for x in candidates if x in names), candidates[0] if candidates else "import-2.1.x")
+    return {"success": True, "marlin_version": version, "suggested_ref": selected, "candidates": [x for x in candidates if x in names]}
 
 
 def latest_marlin_release() -> dict:
@@ -1657,12 +2072,18 @@ def create_api():
 
     @app.get("/api/project")
     def project():
+        config_meta = {}
+        for filename in CONFIG_FILES:
+            path = _find_configuration_file(filename)
+            config_meta[filename] = {"exists": bool(path), "path": str(path) if path else None, "sha256": sha256(path) if path else None}
+        authoritative = ("Config.h" if config_meta.get("Config.h", {}).get("exists") else ("Configuration.h" if config_meta.get("Configuration.h", {}).get("exists") else None))
         return jsonify({
             "success": True,
             "project": {
                 "path": str(STATE.project_dir),
                 "platformio_ini": read_ini(),
-                "configuration": {f: {"exists": config_path(f).exists(), "sha256": sha256(config_path(f))} for f in CONFIG_FILES},
+                "configuration": config_meta,
+                "configuration_authoritative": authoritative,
                 "marlin": detect_marlin_info(),
                 "git": git_status(),
             },
@@ -1825,6 +2246,14 @@ def create_api():
             STATE.log(f"Migration configuration refusée : {exc}", "error")
             return jsonify({"success": False, "error": str(exc)}), 400
 
+    @app.get("/api/configuration/options")
+    def configuration_options_route():
+        try:
+            return jsonify(configuration_options())
+        except Exception as exc:
+            STATE.log(f"Options de configuration indisponibles : {exc}", "error")
+            return jsonify({"success": False, "error": str(exc)}), 400
+
     @app.get("/api/configuration")
     def configuration():
         try:
@@ -1844,6 +2273,16 @@ def create_api():
             return jsonify({"success": True, "filename": filename, **result})
         except Exception as exc:
             return jsonify({"success": False, "error": str(exc)}), 409 if "changé" in str(exc) else 400
+
+    @app.post("/api/configuration/apply")
+    def configuration_apply():
+        payload = request.get_json(silent=True) or {}
+        try:
+            result = write_configuration_set(payload.get("files") or {}, payload.get("expected_hashes") or {})
+            return jsonify({"success": True, **result})
+        except Exception as exc:
+            message = str(exc)
+            return jsonify({"success": False, "error": message}), 409 if "changé" in message else 400
 
     @app.get("/api/files")
     def files():
@@ -1905,6 +2344,48 @@ def create_api():
         if not git_pull_async():
             return jsonify({"success": False, "error": "Impossible de démarrer Git Pull."}), 409
         return jsonify({"success": True})
+
+    @app.get("/api/configurations/branches")
+    def configurations_branches_endpoint():
+        try:
+            return jsonify(marlin_config_branches())
+        except Exception as exc:
+            return jsonify({"success": False, "error": str(exc)}), 502
+
+    @app.get("/api/configurations/suggest")
+    def configurations_suggest_endpoint():
+        try:
+            version = request.args.get("version", "")
+            return jsonify(marlin_config_suggest_ref(version))
+        except Exception as exc:
+            return jsonify({"success": False, "error": str(exc)}), 502
+
+    @app.get("/api/configurations/examples")
+    def configurations_examples_endpoint():
+        try:
+            ref = request.args.get("ref", "import-2.1.x")
+            path = request.args.get("path", "config/examples")
+            return jsonify(marlin_config_examples(ref, path))
+        except Exception as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
+
+    @app.get("/api/configurations/example")
+    def configurations_example_endpoint():
+        try:
+            ref = request.args.get("ref", "import-2.1.x")
+            path = request.args.get("path", "")
+            return jsonify(marlin_config_example(ref, path))
+        except Exception as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
+
+    @app.get("/api/configurations/file")
+    def configurations_file_endpoint():
+        try:
+            ref = request.args.get("ref", "import-2.1.x")
+            path = request.args.get("path", "")
+            return jsonify(marlin_config_file(ref, path))
+        except Exception as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
 
     @app.get("/api/serial/ports")
     def serial_ports_endpoint():

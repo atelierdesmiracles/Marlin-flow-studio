@@ -9,7 +9,7 @@ Marlin Flow Studio Desktop (PySide6)
 ├── Studio React local en localhost
 │   ├── Configurateur Marlin
 │   ├── Éditeur Configuration.h / Configuration_adv.h
-│   ├── Diff / validation / snapshots / historique
+│   ├── Diff / Marlin Doctor / snapshots / historique
 │   ├── Assistant de configuration
 │   ├── G-code / console série
 │   └── panneau Agent local

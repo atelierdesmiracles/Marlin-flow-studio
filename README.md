@@ -17,7 +17,7 @@ When creating a project, the application queries the official Marlin GitHub Rele
 - Serial / G-code console
 - Local project explorer and code editor
 - Embedded Chromium browser for documentation
-- Local snapshots, diffs and validation
+- Local snapshots, diffs and Marlin Doctor
 - Local Agent on `127.0.0.1:38765`
 
 ## Install / run
@@ -69,3 +69,50 @@ Le Speaker Studio associe des mélodies aux événements démarrage, début d’
 
 ## Vibration Studio 2.12.0
 Le studio peut lire et synchroniser le profil Input Shaping / FTM dans Configuration.h et Configuration_adv.h, avec SHA de protection et détection des fichiers absents.
+
+## v2.13.9 — Configuration Smart Controls
+
+L’onglet Configuration utilise maintenant des contrôles adaptés au type de paramètre. Les choix finis sont présentés en menus déroulants, notamment `MOTHERBOARD`, les `TEMP_SENSOR_*`, `LCD_LANGUAGE`, les ports série, le nombre d’extrudeurs, les drivers et les microsteps.
+
+Pour `MOTHERBOARD`, l’Agent local lit les identifiants `BOARD_*` du `Marlin/src/core/boards.h` (avec prise en charge du layout `src/core/boards.h`). Les valeurs `TEMP_SENSOR_*` disposent d’une liste lisible et sont complétées par les tables détectées dans le projet. La valeur actuelle est toujours conservée dans la liste si elle n’est pas reconnue.
+
+La sélection reste locale et modifie la vraie configuration chargée par le projet ; elle ne crée pas de `Config.h` artificiel.
+
+## Création du .EXE Windows
+
+Pour créer l'application Windows :
+
+```text
+CREATE-EXE.bat
+```
+
+Le résultat est généré dans :
+
+```text
+release\\MarlinFlowStudio\\MarlinFlowStudio.exe
+```
+
+Copier tout le dossier `release\\MarlinFlowStudio\\` pour conserver l'application portable complète, notamment le dossier `dist`.
+## v2.13.9 — Architecture complète
+
+La version locale regroupe maintenant les flux principaux dans des sections dédiées : Accueil/Projets, Dashboard, Configuration, Marlin Doctor, Comparateur, Historique, Snapshots, Agent & Build, Console imprimante, G-code, Éditeur de code, Calculateurs, Documentation, Bootscreen Studio, Speaker Studio, Vibration Studio, Import/Migration, Git, Agent local, Navigateur et Paramètres.
+
+Le Agent & Build utilise l'Agent local réel pour Build/Clean/Upload/Build+Upload, suit les logs PlatformIO, détecte les artefacts firmware et ouvre l'outil de copie vers les supports amovibles. Avant les opérations critiques, un snapshot peut être créé et la configuration modifiée peut être enregistrée sur le projet local.
+
+La console imprimante sépare désormais explicitement la liaison série de l'explorateur G-code. L'Accueil/Projets permet de sélectionner un dossier PlatformIO existant ou de créer un nouveau projet Marlin via l'Agent local.
+
+
+
+## Git intégré
+La section Git est dédiée au dépôt officiel MarlinFirmware/Marlin (`https://github.com/MarlinFirmware/Marlin`). Elle affiche le dépôt local, la branche, le commit, le remote, les modifications locales et propose un `git pull --ff-only`.
+
+Le dépôt officiel utilise actuellement `bugfix-2.1.x` comme branche par défaut pour le dépôt source. Les versions publiées sont consultables dans les Releases de Marlin.
+
+## Marlin official repositories
+
+Marlin Flow Studio uses two official Marlin repositories for its Git workflows:
+
+- Firmware: https://github.com/MarlinFirmware/Marlin
+- Pre-tested configurations: https://github.com/MarlinFirmware/Configurations
+
+The Git panel can browse the `config/examples` tree by branch, preview configuration files, and import only files compatible with the authoritative configuration file used by the current local project. A local snapshot is created before an import. Marlin Doctor remains the recommended post-import check before Build.
