@@ -1,22 +1,24 @@
 import React from "react";
 import { useProject } from "@/lib/projectStore";
 import { History, RotateCcw } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function HistoryPanel() {
   const { state, currentProject } = useProject();
+  const { t } = useI18n();
   const entries = (state.history[currentProject?.id] || []);
 
-  if (!currentProject) return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Aucun projet</div>;
+  if (!currentProject) return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">{t("history.noneProject")}</div>;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
         <History className="w-4 h-4" />
-        <h2 className="text-sm font-semibold">Historique</h2>
-        <span className="ml-auto text-xs text-muted-foreground">{entries.length} opération(s)</span>
+        <h2 className="text-sm font-semibold">{t("history.title")}</h2>
+        <span className="ml-auto text-xs text-muted-foreground">{entries.length} {t("history.operations")}</span>
       </div>
       <div className="px-4 py-3 space-y-2">
-        {entries.length === 0 && <div className="text-sm text-muted-foreground text-center py-4">Aucune modification enregistrée</div>}
+        {entries.length === 0 && <div className="text-sm text-muted-foreground text-center py-4">{t("history.empty")}</div>}
         {entries.map((e, i) => (
           <div key={i} className="flex items-start gap-2 text-sm py-1.5 border-b border-border/40">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />

@@ -1,7 +1,8 @@
 // Project store: global state via React context + localStorage persistence.
-import React, { createContext, useContext, useEffect, useReducer } from "react";
+import React, { createContext, useContext, useEffect, useReducer, useRef } from "react";
+import { agentApi } from "./localAgent";
 import { parseMarlinFile, serializeMarlinFile, toggleParameter, updateParameterValue, resetParameter } from "./marlinParser";
-import { getCategoryForParam, getMeta, DEPENDENCIES, CONFLICTS } from "./marlinKnowledge";
+import { getCategoryForParam, getMeta } from "./marlinKnowledge";
 import { DEMO_PROJECT } from "./demoData";
 
 const STORAGE_KEY = "mcfng:state:v2";
@@ -106,6 +107,24 @@ export function parseProject(project) {
   return { ...project, parsedFiles: files, allParameters: allParams, activeFiles };
 }
 
+function refreshConditionalState(fileName, fileModel) {
+  const source = serializeMarlinFile(fileModel.parameters, fileModel.originalLines, fileName);
+  const parsed = parseMarlinFile(source, fileName).parameters;
+  const byLine = new Map(parsed.map((param) => [param.line, param]));
+  return {
+    ...fileModel,
+    parameters: fileModel.parameters.map((param) => {
+      const current = byLine.get(param.line);
+      if (!current) return param;
+      return {
+        ...param,
+        active: current.active,
+        enabled: current.directive === "define" && !current.commented && current.active,
+      };
+    }),
+  };
+}
+
 const initialState = {
   projects: [],
   currentProjectId: null,
@@ -177,7 +196,7 @@ function reducer(state, action) {
         const pf = p.parsedFiles[file];
         if (!pf) return p;
         const parameters = pf.parameters.map((pp) => (pp.line === line ? updater(pp) : pp));
-        const newPf = { ...pf, parameters };
+        const newPf = refreshConditionalState(file, { ...pf, parameters });
         const parsedFiles = { ...p.parsedFiles, [file]: newPf };
         const allParameters = Object.values(parsedFiles).flatMap((f) => f.parameters);
         return { ...p, parsedFiles, allParameters, updatedDate: new Date().toISOString() };
@@ -205,13 +224,12 @@ function reducer(state, action) {
       const projects = state.projects.map((p) => {
         if (p.id !== action.projectId) return p;
         const parsedFiles = {};
-        const allParameters = [];
         for (const [fileName, pf] of Object.entries(p.parsedFiles)) {
           const parameters = pf.parameters.map((pp) => resetParameter(pp));
-          parsedFiles[fileName] = { ...pf, parameters };
-          allParameters.push(...parameters);
+          parsedFiles[fileName] = refreshConditionalState(fileName, { ...pf, parameters });
         }
-        return { ...p, parsedFiles, allParameters, updatedDate: new Date().toISOString() };
+        const refreshedParameters = Object.values(parsedFiles).flatMap((f) => f.parameters);
+        return { ...p, parsedFiles, allParameters: refreshedParameters, updatedDate: new Date().toISOString() };
       });
       return { ...state, projects };
     }
@@ -242,6 +260,72 @@ export function ProjectProvider({ children }) {
         dispatch({ type: "SET_SNAPSHOTS", snapshots: {} });
       });
   }, []);
+
+  // Persist modified Marlin configuration files to the real local project.
+  // The browser state remains useful for undo/reload, while the Local Agent
+  // is the source of truth for Configuration.h / Configuration_adv.h on disk.
+  const autoSaveTimers = useRef(new Map());
+  const autoSaveKeys = useRef(new Map());
+  const autoSaveInitialized = useRef(new Set());
+
+  useEffect(() => {
+    for (const project of state.projects) {
+      if (!project?.localProjectPath || project.id === "demo") continue;
+      const files = {};
+      // IMPORTANT: use the actual Marlin configuration headers first.
+      // Config.h is only a fallback when Configuration.h is absent.
+      // This keeps MOTHERBOARD and all classic #defines attached to their real file.
+      const parsedNames = Object.keys(project.parsedFiles || {});
+      const writableNames = parsedNames.includes("Configuration.h")
+        ? ["Configuration.h", "Configuration_adv.h"].filter((name) => parsedNames.includes(name))
+        : (parsedNames.includes("Config.h") ? ["Config.h"] : []);
+      for (const filename of writableNames) {
+        files[filename] = serializeMarlinFile(
+          project.parsedFiles[filename].parameters,
+          project.parsedFiles[filename].originalLines,
+          filename
+        );
+      }
+      if (!Object.keys(files).length) continue;
+      const key = Object.entries(files).map(([name, content]) => `${name}:${content}`).join("\n\0");
+      if (!autoSaveInitialized.current.has(project.id)) {
+        autoSaveInitialized.current.add(project.id);
+        autoSaveKeys.current.set(project.id, key);
+        continue;
+      }
+      if (autoSaveKeys.current.get(project.id) === key) continue;
+
+      if (autoSaveTimers.current.has(project.id)) clearTimeout(autoSaveTimers.current.get(project.id));
+      const timer = setTimeout(async () => {
+        try {
+          const expected = {};
+          for (const name of Object.keys(files)) {
+            if (project.localHashes?.[name]) expected[name] = project.localHashes[name];
+          }
+          await agentApi.selectProject(project.localProjectPath);
+          const result = await agentApi.applyConfiguration(files, expected);
+          const hashes = { ...(project.localHashes || {}) };
+          for (const item of result.written || []) hashes[item.filename] = item.sha256;
+          autoSaveKeys.current.set(project.id, key);
+          dispatch({
+            type: "UPDATE_PROJECT",
+            project: { ...project, localHashes: hashes, updatedDate: new Date().toISOString() },
+          });
+        } catch (error) {
+          // Keep the browser state intact when the Agent is offline or when an
+          // external edit causes the SHA-256 guard to reject the write.
+          console.warn("Marlin Flow Studio: sauvegarde disque impossible", error);
+        } finally {
+          autoSaveTimers.current.delete(project.id);
+        }
+      }, 700);
+      autoSaveTimers.current.set(project.id, timer);
+    }
+    return () => {
+      for (const timer of autoSaveTimers.current.values()) clearTimeout(timer);
+      autoSaveTimers.current.clear();
+    };
+  }, [state.projects]);
 
   // Persist projects. Snapshots are intentionally excluded: complete Marlin
   // files are stored separately in IndexedDB to avoid localStorage quota loss.
@@ -389,43 +473,6 @@ export function useProject() {
   const ctx = useContext(ProjectContext);
   if (!ctx) throw new Error("useProject must be used within ProjectProvider");
   return ctx;
-}
-
-// Validation engine
-export function validateProject(project) {
-  const warnings = [];
-  const errors = [];
-  const params = project.allParameters;
-  const enabled = (name) => params.some((p) => p.name === name && p.enabled);
-
-  // Dependencies
-  for (const p of params) {
-    if (!p.enabled) continue;
-    const deps = DEPENDENCIES[p.name];
-    if (deps) {
-      for (const d of deps) {
-        if (!enabled(d)) {
-          warnings.push({ level: "WARNING", param: p.name, message: `${p.name} nécessite ${d}, qui est désactivé.` });
-        }
-      }
-    }
-  }
-  // Conflicts
-  for (const c of CONFLICTS) {
-    const active = c.group.filter(enabled);
-    if (active.length > 1) {
-      errors.push({ level: "ERROR", param: active.join(", "), message: c.message });
-    }
-  }
-  // EEPROM without compatible board
-  if (enabled("EEPROM_SETTINGS") && project.board && /RAMPS|GEN6|GEN7/i.test(project.board)) {
-    warnings.push({ level: "WARNING", param: "EEPROM_SETTINGS", message: "EEPROM activée mais la carte peut ne pas supporter l'EEPROM." });
-  }
-  // Thermal protection off
-  if (!enabled("THERMAL_PROTECTION_HOTENDS")) {
-    warnings.push({ level: "WARNING", param: "THERMAL_PROTECTION_HOTENDS", message: "Protection thermique hotend désactivée — dangereux." });
-  }
-  return { warnings, errors };
 }
 
 export function computeDiff(project) {

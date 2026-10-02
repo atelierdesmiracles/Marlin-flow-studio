@@ -1,27 +1,54 @@
-import React, { useState, useEffect } from "react";
-import { Search, Command, Settings, LayoutDashboard, GitCompareArrows, History, Camera, Calculator, Terminal, BookOpen, ShieldCheck, FileCode2, Image, Music2, Activity, ChevronLeft, ChevronRight, Cpu, Globe } from "lucide-react";
+import React from "react";
+import { LayoutDashboard, Settings, GitCompareArrows, History, Camera, Calculator, Terminal, BookOpen, FileCode2, Image, Monitor, Music2, Activity, Crosshair, ChevronLeft, ChevronRight, Cpu, Globe, FolderOpen, Thermometer, Hammer, Printer, ArrowRightLeft, GitBranch, Stethoscope, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { STUDIO_LIST } from "@/lib/studioOrder.js";
+
+// Numéro d'étape (voir studioOrder.js) affiché à droite des 8 Studios
+// épinglés en accès rapide, pour rester cohérent avec le catalogue complet.
+const pinnedStudioNumber = (id) => STUDIO_LIST.find((s) => s.id === id)?.number;
 
 const NAV = [
+  { id: "projects", label: "Accueil / Projets", icon: FolderOpen },
   { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+  { id: "studios", label: "Studios", icon: Cpu },
   { id: "config", label: "Configuration", icon: Settings },
-  { id: "agent", label: "Agent local", icon: Activity },
-  { id: "doctor", label: "Marlin Doctor", icon: ShieldCheck },
-  { id: "browser", label: "Navigateur", icon: Globe },
+  { id: "doctor", label: "Marlin Doctor", icon: Stethoscope },
   { id: "diff", label: "Comparateur", icon: GitCompareArrows },
-  { id: "validation", label: "Validation", icon: ShieldCheck },
   { id: "history", label: "Historique", icon: History },
   { id: "snapshots", label: "Snapshots", icon: Camera },
+  { id: "printer", label: "Console imprimante", icon: Printer },
+  { id: "gcode", label: "G-code", icon: Terminal },
   { id: "code", label: "Éditeur code", icon: FileCode2 },
   { id: "calculators", label: "Calculateurs", icon: Calculator },
-  { id: "gcode", label: "G-code", icon: Terminal },
   { id: "docs", label: "Documentation", icon: BookOpen },
-  { id: "bootscreen", label: "Bootscreen Studio", icon: Image },
-  { id: "speaker", label: "Speaker Studio", icon: Music2 },
+  // Accès rapide, dans l'ordre logique de configuration (voir studioOrder.js) :
+  // Machine (n°1) → Probe & Endstop (n°17) → PID (n°14) → Vibration (n°25)
+  // → Display (n°26) → Bootscreen (n°27) → Speaker (n°28) → Wi-Fi.
+  { id: "machine", label: "Machine Studio", icon: Cpu },
+  { id: "probe-endstop", label: "Probe & Endstop Studio", icon: Crosshair },
+  { id: "pid", label: "PID Studio", icon: Thermometer },
   { id: "vibration", label: "Vibration Studio", icon: Activity },
-];
+  { id: "display", label: "Display Studio", icon: Monitor },
+  { id: "bootscreen", label: "Bootscreen Studio", icon: Image },
+  { id: "mks-tft", label: "MKS TFT Studio", icon: Image },
+  { id: "speaker", label: "Speaker Studio", icon: Music2 },
+  { id: "wifi", label: "Wi-Fi Studio", icon: Wifi },
+  { id: "migration", label: "Import / Migration", icon: ArrowRightLeft },
+  { id: "git", label: "Git", icon: GitBranch },
+  { id: "agent-build", label: "Agent & Build", icon: Hammer },
+  { id: "browser", label: "Navigateur", icon: Globe },
+  { id: "settings", label: "Paramètres", icon: Settings },
+]
 
-export default function Sidebar({ view, setView, collapsed, setCollapsed, modifiedCount, warningCount, errorCount }) {
+export default function Sidebar({ view, setView, collapsed, setCollapsed, modifiedCount }) {
+  const { t } = useI18n();
+  const labels = {
+    projects:t("nav.projects"), dashboard:t("nav.dashboard"), studios: "Studios", config:t("nav.config"), doctor:t("nav.doctor"), diff:t("nav.diff"),
+    history:t("nav.history"), snapshots:t("nav.snapshots"), printer:t("nav.printer"), gcode:t("nav.gcode"), code:t("nav.code"), wifi: "Wi-Fi Studio", "mks-tft": "MKS TFT Studio",
+    calculators:t("nav.calculators"), docs:t("nav.docs"), bootscreen:t("nav.bootscreen"), display: "Display Studio", speaker:t("nav.speaker"), vibration:t("nav.vibration"), "probe-endstop": "Probe & Endstop Studio", machine: "Machine Studio", pid: "PID Studio",
+    migration:t("nav.migration"), git:t("nav.git"), "agent-build":t("nav.agentBuild"), browser:t("nav.browser"), settings:t("nav.settings")
+  };
   return (
     <aside
       className={cn(
@@ -36,7 +63,7 @@ export default function Sidebar({ view, setView, collapsed, setCollapsed, modifi
         {!collapsed && (
           <div className="leading-tight overflow-hidden">
             <div className="text-sm font-semibold truncate">Marlin Flow Studio</div>
-            <div className="text-[10px] text-muted-foreground truncate">NG · v2.8.0 · 100% Local</div>
+            <div className="text-[10px] text-muted-foreground truncate">{t("version")}</div>
           </div>
         )}
       </div>
@@ -44,7 +71,7 @@ export default function Sidebar({ view, setView, collapsed, setCollapsed, modifi
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
-          const badge = item.id === "config" ? modifiedCount : item.id === "validation" ? warningCount + errorCount : null;
+          const badge = item.id === "config" ? modifiedCount : null;
           return (
             <button
               key={item.id}
@@ -53,10 +80,13 @@ export default function Sidebar({ view, setView, collapsed, setCollapsed, modifi
                 "w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors group relative",
                 active ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? (labels[item.id] || item.label) : undefined}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
+              {!collapsed && <span className="flex-1 text-left truncate">{labels[item.id] || item.label}</span>}
+              {!collapsed && pinnedStudioNumber(item.id) && (
+                <span className="text-[10px] text-muted-foreground font-mono shrink-0">#{pinnedStudioNumber(item.id)}</span>
+              )}
               {!collapsed && badge > 0 && (
                 <span className="text-[10px] bg-primary text-primary-foreground px-1.5 rounded-full min-w-[18px] text-center">{badge}</span>
               )}

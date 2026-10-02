@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import webbrowser
+import urllib.error
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -20,7 +21,7 @@ from PySide6.QtCore import QThread, QUrl, Qt, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QDialog, QFileDialog, QFormLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton,
+    QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton, QComboBox,
     QTabWidget, QToolBar, QVBoxLayout, QWidget, QProgressBar,
 )
 from PySide6.QtWebEngineCore import QWebEngineProfile
@@ -32,7 +33,20 @@ AGENT = "http://127.0.0.1:38765"
 BROWSER_PROFILE = APP_DIR / ".marlin-agent" / "browser-profile"
 DOWNLOADS = APP_DIR / "Downloads"
 SETTINGS_FILE = APP_DIR / ".marlin-agent" / "desktop-settings.json"
-WINDOW_TITLE = "Marlin Flow Studio — Local 1.5.1"
+WINDOW_TITLE = "Marlin Flow Studio — Local 2.13.9"
+
+DESKTOP_LANGUAGES = [
+    ("fr", "Français"), ("en", "English"), ("zh", "中文"),
+    ("hi", "हिन्दी"), ("es", "Español"), ("ar", "العربية"),
+]
+DESKTOP_T = {
+    "fr": {"title":"Bienvenue dans Marlin Flow Studio","subtitle":"Tout fonctionne localement. Préparez les outils, créez un projet Marlin ou ouvrez un projet existant.","tools":"1. Outils locaux","project":"2. Projet actuel","start":"3. Démarrer","new":"Créer un nouveau projet Marlin","open":"Ouvrir un projet déjà créé","resume":"Reprendre le projet actuel","continue":"Continuer sans projet","show":"Afficher cet assistant au prochain démarrage","install":"Installer","none":"Aucun projet PlatformIO sélectionné.","language":"Langue","reinstall":"Réinstaller / réparer","pioInstalled":"PlatformIO Core : ✅ installé","pioMissing":"PlatformIO Core : ❌ non installé","agentUnavailable":"Agent local : ⚠ indisponible ({exc})","gitInstalled":"Git : ✅ installé","gitMissing":"Git : ❌ non installé"},
+    "en": {"title":"Welcome to Marlin Flow Studio","subtitle":"Everything runs locally. Prepare tools, create a Marlin project, or open an existing project.","tools":"1. Local tools","project":"2. Current project","start":"3. Start","new":"Create a new Marlin project","open":"Open an existing project","resume":"Resume current project","continue":"Continue without a project","show":"Show this assistant at next startup","install":"Install","none":"No PlatformIO project selected.","language":"Language","reinstall":"Reinstall / repair","pioInstalled":"PlatformIO Core: ✅ installed","pioMissing":"PlatformIO Core: ❌ not installed","agentUnavailable":"Local Agent: ⚠ unavailable ({exc})","gitInstalled":"Git: ✅ installed","gitMissing":"Git: ❌ not installed"},
+    "zh": {"title":"欢迎使用 Marlin Flow Studio","subtitle":"全部本地运行。准备工具、创建 Marlin 项目或打开现有项目。","tools":"1. 本地工具","project":"2. 当前项目","start":"3. 开始","new":"创建新的 Marlin 项目","open":"打开现有项目","resume":"继续当前项目","continue":"不使用项目继续","show":"下次启动显示此助手","install":"安装","none":"未选择 PlatformIO 项目。","language":"语言","reinstall":"重新安装 / 修复","pioInstalled":"PlatformIO Core：✅ 已安装","pioMissing":"PlatformIO Core：❌ 未安装","agentUnavailable":"本地代理：⚠ 不可用（{exc}）","gitInstalled":"Git：✅ 已安装","gitMissing":"Git：❌ 未安装"},
+    "hi": {"title":"Marlin Flow Studio में आपका स्वागत है","subtitle":"सब कुछ स्थानीय रूप से चलता है। टूल तैयार करें, Marlin प्रोजेक्ट बनाएँ या मौजूदा प्रोजेक्ट खोलें।","tools":"1. स्थानीय टूल","project":"2. वर्तमान प्रोजेक्ट","start":"3. प्रारंभ","new":"नया Marlin प्रोजेक्ट बनाएँ","open":"मौजूदा प्रोजेक्ट खोलें","resume":"वर्तमान प्रोजेक्ट जारी रखें","continue":"प्रोजेक्ट के बिना जारी रखें","show":"अगले स्टार्टअप पर यह सहायक दिखाएँ","install":"इंस्टॉल","none":"कोई PlatformIO प्रोजेक्ट चयनित नहीं।","language":"भाषा","reinstall":"फिर इंस्टॉल / मरम्मत","pioInstalled":"PlatformIO Core : ✅ इंस्टॉल है","pioMissing":"PlatformIO Core : ❌ इंस्टॉल नहीं है","agentUnavailable":"स्थानीय एजेंट : ⚠ उपलब्ध नहीं ({exc})","gitInstalled":"Git : ✅ इंस्टॉल है","gitMissing":"Git : ❌ इंस्टॉल नहीं है"},
+    "es": {"title":"Bienvenido a Marlin Flow Studio","subtitle":"Todo funciona localmente. Prepara las herramientas, crea un proyecto Marlin o abre uno existente.","tools":"1. Herramientas locales","project":"2. Proyecto actual","start":"3. Empezar","new":"Crear un nuevo proyecto Marlin","open":"Abrir un proyecto existente","resume":"Reanudar el proyecto actual","continue":"Continuar sin proyecto","show":"Mostrar este asistente en el próximo inicio","install":"Instalar","none":"No hay proyecto PlatformIO seleccionado.","language":"Idioma","reinstall":"Reinstalar / reparar","pioInstalled":"PlatformIO Core: ✅ instalado","pioMissing":"PlatformIO Core: ❌ no instalado","agentUnavailable":"Agente local: ⚠ no disponible ({exc})","gitInstalled":"Git: ✅ instalado","gitMissing":"Git: ❌ no instalado"},
+    "ar": {"title":"مرحباً بك في Marlin Flow Studio","subtitle":"يعمل كل شيء محلياً. جهّز الأدوات أو أنشئ مشروع Marlin أو افتح مشروعاً موجوداً.","tools":"1. الأدوات المحلية","project":"2. المشروع الحالي","start":"3. البدء","new":"إنشاء مشروع Marlin جديد","open":"فتح مشروع موجود","resume":"استئناف المشروع الحالي","continue":"المتابعة بدون مشروع","show":"إظهار هذا المساعد عند التشغيل القادم","install":"تثبيت","none":"لم يتم تحديد مشروع PlatformIO.","language":"اللغة","reinstall":"إعادة التثبيت / الإصلاح","pioInstalled":"PlatformIO Core: ✅ مثبت","pioMissing":"PlatformIO Core: ❌ غير مثبت","agentUnavailable":"الوكيل المحلي: ⚠ غير متاح ({exc})","gitInstalled":"Git: ✅ مثبت","gitMissing":"Git: ❌ غير مثبت"},
+}
 
 
 class StaticHandler(SimpleHTTPRequestHandler):
@@ -220,8 +234,19 @@ def agent_json(path: str, method="GET", body=None, timeout=10):
         data = json.dumps(body).encode("utf-8")
         headers["Content-Type"] = "application/json"
     req = Request(AGENT + path, method=method, headers=headers, data=data)
-    with urlopen(req, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = ""
+        try:
+            payload = json.loads(exc.read().decode("utf-8", errors="replace"))
+            detail = str(payload.get("error") or "")
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        if detail:
+            raise RuntimeError(detail) from exc
+        raise RuntimeError(f"Erreur HTTP {exc.code} : {exc.reason}") from exc
 
 
 def is_git_installed() -> bool:
@@ -281,32 +306,48 @@ class StartupWizard(QDialog):
         self.setModal(True)
         self.resize(760, 620)
         self.worker = None
+        self.language = read_settings().get("language", "fr")
+        if self.language not in DESKTOP_T: self.language = "fr"
         self.poll = QTimerCompat(self)
         self.poll.timeout.connect(self.refresh_status)
         self.poll.start(2500)
 
         root = QVBoxLayout(self)
-        title = QLabel("Bienvenue dans Marlin Flow Studio")
-        title.setStyleSheet("font-size:25px;font-weight:700;")
-        root.addWidget(title)
-        subtitle = QLabel("Tout fonctionne localement. Préparez les outils, créez un projet Marlin ou ouvrez un projet existant.")
-        subtitle.setStyleSheet("color:#667085;")
-        root.addWidget(subtitle)
+        lang_row = QHBoxLayout()
+        lang_row.addStretch(1)
+        self.lang_label = QLabel("Langue")
+        self.lang_combo = QComboBox()
+        for code, label in DESKTOP_LANGUAGES: self.lang_combo.addItem(label, code)
+        idx = max(0, self.lang_combo.findData(self.language))
+        self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.currentIndexChanged.connect(self.change_language)
+        lang_row.addWidget(self.lang_label)
+        lang_row.addWidget(self.lang_combo)
+        root.addLayout(lang_row)
+        self.title_label = QLabel("Bienvenue dans Marlin Flow Studio")
+        self.title_label.setStyleSheet("font-size:25px;font-weight:700;")
+        root.addWidget(self.title_label)
+        self.subtitle_label = QLabel("Tout fonctionne localement. Préparez les outils, créez un projet Marlin ou ouvrez un projet existant.")
+        self.subtitle_label.setStyleSheet("color:#667085;")
+        root.addWidget(self.subtitle_label)
 
-        tools = QGroupBox("1. Outils locaux")
+        self.tools_box = QGroupBox("1. Outils locaux")
+        tools = self.tools_box
         tools_layout = QVBoxLayout(tools)
         self.pio_label, self.pio_button = self.tool_row(tools_layout, "PlatformIO Core")
         self.git_label, self.git_button = self.tool_row(tools_layout, "Git")
         root.addWidget(tools)
 
-        current = QGroupBox("2. Projet actuel")
+        self.current_box = QGroupBox("2. Projet actuel")
+        current = self.current_box
         current_layout = QVBoxLayout(current)
         self.current_label = QLabel("Aucun projet local sélectionné.")
         self.current_label.setWordWrap(True)
         current_layout.addWidget(self.current_label)
         root.addWidget(current)
 
-        actions = QGroupBox("3. Démarrer")
+        self.actions_box = QGroupBox("3. Démarrer")
+        actions = self.actions_box
         grid = QVBoxLayout(actions)
         self.new_btn = QPushButton("🆕  Créer un nouveau projet Marlin")
         self.new_btn.setMinimumHeight(44)
@@ -329,7 +370,33 @@ class StartupWizard(QDialog):
         bottom.addWidget(self.auto)
         bottom.addStretch(1)
         root.addLayout(bottom)
+        self.retranslate()
         self.refresh_status()
+
+    def change_language(self, _index):
+        self.language = self.lang_combo.currentData() or "fr"
+        write_settings({**read_settings(), "language": self.language})
+        self.retranslate()
+        if hasattr(self.desktop, "refresh_studio_context"): self.desktop.refresh_studio_context()
+
+    def tr(self, key):
+        return DESKTOP_T.get(self.language, DESKTOP_T["fr"]).get(key, DESKTOP_T["fr"].get(key, key))
+
+    def retranslate(self):
+        d=DESKTOP_T.get(self.language, DESKTOP_T["fr"])
+        self.setWindowTitle(f"Marlin Flow Studio — Démarrage" if self.language=="fr" else "Marlin Flow Studio — Startup")
+        self.lang_label.setText(d["language"])
+        # References are kept explicitly so relabeling remains stable.
+        self.title_label.setText(d["title"])
+        self.subtitle_label.setText(d["subtitle"])
+        self.tools_box.setTitle(d["tools"])
+        self.current_box.setTitle(d["project"])
+        self.actions_box.setTitle(d["start"])
+        self.new_btn.setText("🆕  " + d["new"])
+        self.open_btn.setText("📂  " + d["open"])
+        self.resume_btn.setText("▶  " + d["resume"])
+        self.continue_btn.setText(d["continue"])
+        self.auto.setText(d["show"])
 
     def tool_row(self, layout, name):
         row = QHBoxLayout()
@@ -346,18 +413,18 @@ class StartupWizard(QDialog):
         try:
             status = agent_json("/api/status", timeout=2)
             installed = bool(status.get("platformio_installed"))
-            self.pio_label.setText("PlatformIO Core : ✅ installé" if installed else "PlatformIO Core : ❌ non installé")
-            self.pio_button.setText("Réinstaller / réparer" if installed else "Installer")
+            self.pio_label.setText(self.tr("pioInstalled") if installed else self.tr("pioMissing"))
+            self.pio_button.setText(self.tr("reinstall") if installed else self.tr("install"))
             self.pio_button.setEnabled(not bool(status.get("busy")))
             project = status.get("project_dir") or ""
             has_project = bool(project and (Path(project) / "platformio.ini").exists())
-            self.current_label.setText(project if has_project else "Aucun projet PlatformIO sélectionné.")
+            self.current_label.setText(project if has_project else self.tr("none"))
         except Exception as exc:
-            self.pio_label.setText(f"PlatformIO Core : ⚠ agent indisponible ({exc})")
+            self.pio_label.setText(self.tr("agentUnavailable").format(exc=exc))
             self.pio_button.setEnabled(False)
         git_ok = is_git_installed()
-        self.git_label.setText("Git : ✅ installé" if git_ok else "Git : ❌ non installé")
-        self.git_button.setText("Réinstaller / réparer" if git_ok else "Installer")
+        self.git_label.setText(self.tr("gitInstalled") if git_ok else self.tr("gitMissing"))
+        self.git_button.setText(self.tr("reinstall") if git_ok else self.tr("install"))
 
     def install_tool(self, name):
         if name == "PlatformIO Core":
@@ -395,7 +462,7 @@ class StartupWizard(QDialog):
         form.addRow("Dossier de destination", row)
         form.addRow("Version Marlin", latest)
         root.addLayout(form)
-        note = QLabel("Le programme télécharge la dernière release stable officielle de Marlin. Git est utilisé pour cloner la release lorsqu'il est installé ; sinon l'archive officielle GitHub est utilisée.")
+        note = QLabel("Le programme télécharge la dernière release stable officielle de Marlin. Le dossier parent sera créé s'il n'existe pas. Git est utilisé pour cloner la release lorsqu'il est installé ; sinon l'archive officielle GitHub est utilisée.")
         note.setWordWrap(True)
         note.setStyleSheet("color:#667085;font-size:11px;")
         root.addWidget(note)
@@ -547,7 +614,7 @@ class MainWindow(QMainWindow):
         self.studio = StudioTab(self.profile, studio_url, agent_token())
         self.browser = BrowserTab(self.profile, "https://marlinfw.org/")
         self.agent_view = AgentTab(self)
-        self.tabs.addTab(self.studio, "Studio local"); self.tabs.addTab(self.browser, "Navigateur"); self.tabs.addTab(self.agent_view, "Agent local")
+        self.tabs.addTab(self.studio, "Studio local"); self.tabs.addTab(self.browser, "Navigateur"); self.tabs.addTab(self.agent_view, "Agent & Build")
         outer.addWidget(self.tabs)
         studio_action.triggered.connect(lambda: self.tabs.setCurrentIndex(0)); browser_action.triggered.connect(lambda: self.tabs.setCurrentIndex(1)); agent_action.triggered.connect(lambda: self.tabs.setCurrentIndex(2)); new_browser_action.triggered.connect(self.add_browser_tab); startup_action.triggered.connect(self.show_startup_wizard); project_action.triggered.connect(self.choose_project); folder_action.triggered.connect(self.open_project)
         self.setCentralWidget(root); self.statusBar().showMessage("Marlin Flow Studio prêt")
@@ -561,10 +628,12 @@ class MainWindow(QMainWindow):
         except Exception:
             path = ""
         token = agent_token(); self.studio.token = token
+        language = read_settings().get("language", "fr")
         script = (
             "localStorage.setItem('marlin_agent_token', " + json.dumps(token) + ");"
             "localStorage.setItem('marlin_agent_url', " + json.dumps(AGENT) + ");"
             "localStorage.setItem('marlin_local_project_path', " + json.dumps(path) + ");"
+            "localStorage.setItem('marlin-flow-language-v1', " + json.dumps(language) + ");"
             "window.dispatchEvent(new Event('marlin-project-changed'));"
         )
         self.studio.web.page().runJavaScript(script)
@@ -609,8 +678,16 @@ class MainWindow(QMainWindow):
         self.refresh_studio_context(); self.studio.web.reload(); self.agent_view.refresh()
 
     def show_startup_if_needed(self):
+        # Show the startup assistant on application launch by default.
+        # After closing it, the embedded web application remains on
+        # "Accueil / Projets". The checkbox in the assistant can disable
+        # automatic display for later launches.
+        self.tabs.setCurrentIndex(0)
         settings = read_settings()
-        if settings.get("show_startup_wizard", True): self.show_startup_wizard()
+        if settings.get("show_startup_wizard", True):
+            self.show_startup_wizard()
+        else:
+            self.statusBar().showMessage("Accueil / Projets")
 
     def show_message(self, message: str): QMessageBox.warning(self, "Marlin Flow Studio", message)
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useProject, parseProject } from "@/lib/projectStore";
 import { X, FolderOpen, CheckCircle2, AlertCircle, FileCode2, FileArchive } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 function readText(file) {
   return new Promise((resolve, reject) => {
@@ -11,10 +12,10 @@ function readText(file) {
   });
 }
 
-function buildProject(files) {
+function buildProject(files, t) {
   const byName = new Map(files.map(f => [f.name, f]));
   const main = byName.get("Configuration.h");
-  if (!main) throw new Error("Configuration.h est obligatoire.");
+  if (!main) throw new Error(t("imports.configurationRequired"));
   return Promise.all([
     readText(main),
     byName.has("Configuration_adv.h") ? readText(byName.get("Configuration_adv.h")) : Promise.resolve("")
@@ -45,8 +46,9 @@ function buildProject(files) {
   });
 }
 
-export default function ImportMarlinModal({ open, onClose, onCreated }) {
+export default function ImportMarlinModal({ open, onClose, onCreated = (_project) => {} }) {
   const { addProject, selectProject } = useProject();
+  const { t } = useI18n();
   const inputRef = useRef(null);
   const [selectedCount, setSelectedCount] = useState(0);
   const [files, setFiles] = useState([]);
@@ -62,13 +64,13 @@ export default function ImportMarlinModal({ open, onClose, onCreated }) {
   async function create() {
     setCreating(true); setError(null);
     try {
-      const project = await buildProject(files);
+      const project = await buildProject(files, t);
       addProject(project);
       selectProject(project.id);
       onCreated?.(project);
       onClose();
     } catch (e) {
-      setError(e.message || "Import local impossible.");
+      setError(e.message || t("imports.localImportError"));
     } finally {
       setCreating(false);
     }
@@ -79,21 +81,21 @@ export default function ImportMarlinModal({ open, onClose, onCreated }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="w-full max-w-lg mx-4 bg-popover border border-border rounded-lg p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold flex items-center gap-2"><FolderOpen className="w-4 h-4" /> Importer un projet Marlin local</h2>
+          <h2 className="font-semibold flex items-center gap-2"><FolderOpen className="w-4 h-4" /> {t("imports.importMarlinTitle")}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">Sélectionne le dossier du firmware Marlin. Le studio recherche Configuration.h et Configuration_adv.h sur le disque, sans serveur cloud.</p>
+        <p className="text-sm text-muted-foreground mb-4">{t("imports.readProject")}</p>
         <input ref={inputRef} type="file" webkitdirectory="true" directory="true" multiple className="hidden" onChange={e => { const list = Array.from(e.target.files || []); setFiles(list); setSelectedCount(list.length); setError(null); }} />
-        <button onClick={() => inputRef.current?.click()} className="w-full flex items-center justify-center gap-2 py-3 rounded-md border border-dashed border-border hover:bg-accent text-sm"><FolderOpen className="w-4 h-4" /> Choisir le dossier Marlin</button>
+        <button onClick={() => inputRef.current?.click()} className="w-full flex items-center justify-center gap-2 py-3 rounded-md border border-dashed border-border hover:bg-accent text-sm"><FolderOpen className="w-4 h-4" /> {t("imports.chooseFolder")}</button>
         <div className="mt-3 space-y-1.5 text-xs">
           <div className="flex items-center gap-2"><FileCode2 className="w-3.5 h-3.5" /> Configuration.h {files.some(f => f.name === "Configuration.h") ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : null}</div>
           <div className="flex items-center gap-2"><FileArchive className="w-3.5 h-3.5" /> Configuration_adv.h {files.some(f => f.name === "Configuration_adv.h") ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : null}</div>
-          <div className="text-muted-foreground">{selectedCount ? `${selectedCount} fichiers sélectionnés` : "Aucun dossier sélectionné"}</div>
+          <div className="text-muted-foreground">{selectedCount ? `${selectedCount} ${t("imports.selectedFiles")}` : t("imports.noFolder")}</div>
         </div>
         {error && <div className="mt-3 flex items-center gap-2 p-2 rounded bg-red-500/10 text-red-600 text-sm"><AlertCircle className="w-4 h-4 shrink-0" />{error}</div>}
         <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="flex-1 py-2 text-sm rounded border border-border hover:bg-accent">Annuler</button>
-          <button onClick={create} disabled={creating || !files.some(f => f.name === "Configuration.h")} className="flex-1 py-2 text-sm rounded bg-primary text-primary-foreground disabled:opacity-40">{creating ? "Import…" : "Importer localement"}</button>
+          <button onClick={onClose} className="flex-1 py-2 text-sm rounded border border-border hover:bg-accent">{t("common.cancel")}</button>
+          <button onClick={create} disabled={creating || !files.some(f => f.name === "Configuration.h")} className="flex-1 py-2 text-sm rounded bg-primary text-primary-foreground disabled:opacity-40">{creating ? t("imports.importing") : t("imports.importLocal")}</button>
         </div>
       </div>
     </div>

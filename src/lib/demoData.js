@@ -55,11 +55,31 @@ export const DEMO_CONFIG_H = `/**
 #define EXTRUDERS 1
 //#define SINGLENOZZLE
 
+// ==================== ENDSTOPS & PROBE ====================
+#define USE_XMIN_PLUG
+#define USE_YMIN_PLUG
+#define USE_ZMIN_PLUG
+#define ENDSTOPPULLUPS
+#define X_MIN_ENDSTOP_HIT_STATE HIGH
+#define Y_MIN_ENDSTOP_HIT_STATE HIGH
+#define Z_MIN_ENDSTOP_HIT_STATE HIGH
+#define Z_MIN_PROBE_ENDSTOP_HIT_STATE HIGH
+//#define ENDSTOP_INTERRUPTS_FEATURE
+//#define ENDSTOP_NOISE_THRESHOLD 2
+//#define DETECT_BROKEN_ENDSTOP
+
 // ==================== PROBE ====================
 #define BLTOUCH
 #define BLTOUCH_HS_MODE
+#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
+#define USE_PROBE_FOR_Z_HOMING
 #define NOZZLE_TO_PROBE_OFFSET { -44, -10, 0 }
 #define Z_MIN_PROBE_ENDSTOP_INVERTING 0
+#define PROBING_TOOL 0
+#define PROBING_MARGIN 10
+#define XY_PROBE_FEEDRATE (133*60)
+#define Z_PROBE_FEEDRATE_FAST (4*60)
+#define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 2)
 
 // ==================== LEVELING ====================
 #define AUTO_BED_LEVELING_BILINEAR

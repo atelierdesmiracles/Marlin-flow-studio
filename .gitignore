@@ -1,0 +1,21 @@
+# Local development output
+node_modules/
+dist/
+.venv/
+.platformio-venv/
+.pio/
+.marlin-agent/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+
+# Local machine and firmware output
+Downloads/
+*.zip
+*.gcode
+*.3mf
+*.lnk
+Desktop.ini
+Thumbs.db

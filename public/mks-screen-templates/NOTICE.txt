@@ -1,0 +1,10 @@
+MKS screen asset reference packs
+
+This directory contains image assets supplied in the user-provided archives:
+- MKS-TOOL 1.0.8: mks_pic32 and mks_pic35 reference assets.
+- MKS Robin Nano Marlin 2.0 firmware: mks_pic assets for the TFT35 LVGL profile.
+
+No MKS-TOOL executable or Python source is included. Marlin Flow Studio uses an
+independent local RGB565 encoder and preserves the source header on Robin LVGL
+assets where the supplied binary has one. The accompanying license files are
+retained with their respective asset packs.

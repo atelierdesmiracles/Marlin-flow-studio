@@ -144,6 +144,8 @@ export function parseMarlinFile(text, fileName = "Configuration.h") {
           type: "undef",
           value: null,
           rawValue: "",
+          defaultType: "undef",
+          defaultCommented: false,
           enabled: false,
           commented: false,
           inlineComment,
@@ -151,6 +153,7 @@ export function parseMarlinFile(text, fileName = "Configuration.h") {
           originalRawText: raw,
           modified: false,
           active: currentlyActive(),
+          defaultActive: currentlyActive(),
         });
         continue;
       }
@@ -168,6 +171,8 @@ export function parseMarlinFile(text, fileName = "Configuration.h") {
         rawValue,
         defaultValue: value,
         defaultRawValue: rawValue,
+        defaultType: type,
+        defaultCommented: commented,
         enabled: !commented && currentlyActive(),
         commented,
         inlineComment,
@@ -175,6 +180,7 @@ export function parseMarlinFile(text, fileName = "Configuration.h") {
         originalRawText: raw,
         modified: false,
         active: currentlyActive(),
+        defaultActive: currentlyActive(),
       });
       continue;
     }
@@ -234,13 +240,38 @@ export function renderLine(p) {
  * Toggle a parameter's enabled state (comment/uncomment), preserving structure.
  */
 export function toggleParameter(p) {
-  const updated = { ...p, enabled: !p.enabled, commented: !p.enabled, modified: true, lastModified: new Date().toISOString() };
+  // `enabled` also depends on the surrounding #if stack. Toggle the source
+  // comment marker instead, otherwise an uncommented define in an inactive
+  // branch gets commented when the user tries to enable it.
+  const commented = !p.commented;
+  const updated = {
+    ...p,
+    commented,
+    enabled: p.directive === "define" && !commented && p.active,
+    modified: true,
+    lastModified: new Date().toISOString(),
+  };
   updated.rawText = renderLine(updated);
   return updated;
 }
 
 export function updateParameterValue(p, newValue) {
-  const updated = { ...p, value: newValue, modified: true, lastModified: new Date().toISOString() };
+  // Editing a commented-out #define means the user explicitly selected/changed
+  // that option in a Studio. For hardware-critical directives such as
+  // MOTHERBOARD, the resulting file must therefore contain an active define.
+  const activate = p.name === "MOTHERBOARD";
+  const updated = {
+    ...p,
+    value: newValue,
+    modified: true,
+    commented: activate ? false : p.commented,
+    enabled: activate ? true : p.enabled,
+    // A commented `//#define MOTHERBOARD` is parsed as a flag because it has
+    // no value. Once a board is selected, it must become an expression/value
+    // parameter so renderLine emits `#define MOTHERBOARD BOARD_...`.
+    type: activate && p.type === "flag" ? "expr" : p.type,
+    lastModified: new Date().toISOString(),
+  };
   if (updated.type === "string") updated.rawValue = `"${newValue}"`;
   else if (updated.type === "array") updated.rawValue = `{ ${newValue.join(", ")} }`;
   else updated.rawValue = String(newValue);
@@ -249,11 +280,15 @@ export function updateParameterValue(p, newValue) {
 }
 
 export function resetParameter(p) {
+  const commented = p.defaultCommented ?? p.commented;
   return {
     ...p,
     value: p.defaultValue,
     rawValue: p.defaultRawValue,
-    enabled: !p.commented && p.active,
+    type: p.defaultType ?? p.type,
+    commented,
+    active: p.defaultActive ?? p.active,
+    enabled: p.directive === "define" && !commented && (p.defaultActive ?? p.active),
     modified: false,
     rawText: p.originalRawText,
     lastModified: new Date().toISOString(),

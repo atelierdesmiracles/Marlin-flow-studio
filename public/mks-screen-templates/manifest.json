@@ -1,0 +1,2811 @@
+{
+  "schemaVersion": 1,
+  "profiles": {
+    "tft32": {
+      "name": "MKS-TOOL 1.0.8 · MKS TFT24/28/32",
+      "folder": "mks_pic32",
+      "assetFormat": "RGB565 little-endian raw pixels",
+      "files": [
+        {
+          "name": "bmp_Add.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed_slow.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed_normal.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed_high.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed_extruct.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed255.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed127.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed0.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_speed.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_spanish_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_spanish.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_simplified_cn_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step10_degree.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_simplified_cn.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_sd_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_sd.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_russian_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_russian.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_return.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_resume.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_printing.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_preHeat.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_pause.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_pageUp.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_pageDown.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_set.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step10_mm.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step10_percent.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step1_degree.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zeroX.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zeroA.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zero.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zDec.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zAdd.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_yDec.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_yAdd.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_xDec.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_xAdd.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_wifi.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_usb_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_usb.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_traditional_cn_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_traditional_cn.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_tool.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_temp.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_stop.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step_move10.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step_move1.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step_move0_1.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step5_percent.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step5_mm.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step5_degree.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step1_percent.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_step1_mm.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_out.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_mov_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_mov_changeSpeed.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_mov.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_fan.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extruct_sel.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extruct.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extru2_no_words.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extru2.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extru1_no_words.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_extru1.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_english_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_english.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_dir.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom7.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom6.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom5.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom4.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom3.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom2.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_custom1.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_cloud.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_breakpoint.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_bed_no_words.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_bed.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_autoleveling.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_auto_off.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_about.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_Dec.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_fan_move.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zeroY.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_fan_no_words.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_file.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_morefunc5.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_morefunc4.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_morefunc3.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_morefunc2.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_morefunc1.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_more.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_menu.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_manual_off.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_logo.bin",
+          "bytes": 153600,
+          "headerBytes": 0,
+          "width": 320,
+          "height": 240
+        },
+        {
+          "name": "bmp_leveling5.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_leveling4.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_leveling3.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_leveling2.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_leveling1.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_leveling.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_language.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_italy_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_italy.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_in.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_iconlogo.lg",
+          "bytes": 86400,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_function2.bin",
+          "bytes": 16232,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_function1.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_french_sel.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_french.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_fileSys.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_filamentchange.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        },
+        {
+          "name": "bmp_zeroZ.bin",
+          "bytes": 16224,
+          "headerBytes": 0,
+          "width": 78,
+          "height": 104
+        }
+      ]
+    },
+    "tft35": {
+      "name": "MKS-TOOL 1.0.8 · MKS TFT35",
+      "folder": "mks_pic35",
+      "assetFormat": "RGB565 little-endian raw pixels",
+      "files": [
+        {
+          "name": "bmp_Add.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_spanish.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_spanish_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed0.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed127.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed255.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_simplified_cn_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_extru.bin",
+          "bytes": 20000,
+          "headerBytes": 0,
+          "width": 100,
+          "height": 100
+        },
+        {
+          "name": "bmp_speed_high.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_normal.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_slow.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_step001_zoffset.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step001_zoffset_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_extruct.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_simplified_cn.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_set.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_sd_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_operate.bin",
+          "bytes": 24000,
+          "headerBytes": 0,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_out.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_pageDown.bin",
+          "bytes": 21528,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_pageUp.bin",
+          "bytes": 21528,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_pause.bin",
+          "bytes": 24000,
+          "headerBytes": 0,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_preHeat.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_preview.bin",
+          "bytes": 80000,
+          "headerBytes": 0,
+          "width": 200,
+          "height": 200
+        },
+        {
+          "name": "bmp_printing.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_printing_back.bin",
+          "bytes": 24000,
+          "headerBytes": 0,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_quickstop.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_resume.bin",
+          "bytes": 24000,
+          "headerBytes": 0,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_return.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_russian.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_russian_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_sd.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step01_zoffset.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_next.bin",
+          "bytes": 20000,
+          "headerBytes": 0,
+          "width": 100,
+          "height": 100
+        },
+        {
+          "name": "bmp_step01_zoffset_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step10_mm.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_usb_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_wifi.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_xAdd.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_xDec.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_yAdd.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_yDec.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_usb.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zAdd.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zero.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroA.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroX.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroY.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroZ.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zoffset.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zDec.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_traditional_cn_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_traditional_cn.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_tool.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step10_percent.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_degree.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_mm.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_percent.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_zoffset.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_zoffset_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_degree.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_mm.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_percent.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move0_1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move10.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_stop.bin",
+          "bytes": 24000,
+          "headerBytes": 0,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_temp.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_time_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_step10_degree.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_move_opr.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov_changeSpeed.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_breakpoint.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_cloud.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom2.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom3.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom4.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_bed_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_custom5.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom7.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_dir.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_english.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_english_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_ext1_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_ext2_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_custom6.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_bed.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_backspace_white.bin",
+          "bytes": 1344,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_backspace_black.bin",
+          "bytes": 1344,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Check_Mark_Black.bin",
+          "bytes": 504,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Check_Mark_Yellow.bin",
+          "bytes": 504,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Dec.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_RetroBed.bin",
+          "bytes": 5000,
+          "headerBytes": 0,
+          "width": 50,
+          "height": 50
+        },
+        {
+          "name": "bmp_RetroEx1.bin",
+          "bytes": 5000,
+          "headerBytes": 0,
+          "width": 50,
+          "height": 50
+        },
+        {
+          "name": "bmp_RetroEx2.bin",
+          "bytes": 5000,
+          "headerBytes": 0,
+          "width": 50,
+          "height": 50
+        },
+        {
+          "name": "bmp_RetroFan.bin",
+          "bytes": 5000,
+          "headerBytes": 0,
+          "width": 50,
+          "height": 50
+        },
+        {
+          "name": "bmp_Toggle_Down_Arrow_Black.bin",
+          "bytes": 1176,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Toggle_Down_Arrow_White.bin",
+          "bytes": 1176,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Toggle_Up_Arrow_Black.bin",
+          "bytes": 1176,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_Toggle_Up_Arrow_White.bin",
+          "bytes": 1176,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_about.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_auto_off.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_autoleveling.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_back.bin",
+          "bytes": 21528,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_extru1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extru2.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extruct.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extruct_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling4.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling5.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_logo.bin",
+          "bytes": 307200,
+          "headerBytes": 0,
+          "width": 480,
+          "height": 320
+        },
+        {
+          "name": "bmp_manual_off.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_menu.bin",
+          "bytes": 20000,
+          "headerBytes": 0,
+          "width": 100,
+          "height": 100
+        },
+        {
+          "name": "bmp_more.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_more_opr.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc2.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc3.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc4.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc5.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc6.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_morefunc7.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling3.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zpos.bin",
+          "bytes": 5000,
+          "headerBytes": 0,
+          "width": 50,
+          "height": 50
+        },
+        {
+          "name": "bmp_leveling2.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extrude_opr.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_fan.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_fan_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_filamentchange.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_file.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_fileSys.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_french.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_french_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_function1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_function2.bin",
+          "bytes": 20000,
+          "headerBytes": 0,
+          "width": 100,
+          "height": 100
+        },
+        {
+          "name": "bmp_in.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_italy.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_italy_sel.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_keyboard_return.bin",
+          "bytes": 1344,
+          "headerBytes": 0
+        },
+        {
+          "name": "bmp_language.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling1.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zpos_state.bin",
+          "bytes": 4050,
+          "headerBytes": 0,
+          "width": 45,
+          "height": 45
+        }
+      ]
+    },
+    "robin35": {
+      "name": "MKS Robin Nano TFT35 · Marlin 2.0 LVGL",
+      "folder": "robin-nano-tft35-lvgl",
+      "assetFormat": "RGB565 little-endian, 5-byte source header preserved on tagged icons; raw logo/preview",
+      "files": [
+        {
+          "name": "bmp_about.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step10_mm.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step10_degree.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_speed_slow.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_normal.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_high.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed_extruct.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed255.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed127.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed0.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_speed.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_spanish_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_spanish.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_simplified_cn_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_simplified_cn.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_set.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_sd_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_pageUp.bin",
+          "bytes": 21533,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_pause.bin",
+          "bytes": 24005,
+          "headerBytes": 5,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_Position.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Power.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_power_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_preHeat.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step10_percent.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_preview.bin",
+          "bytes": 80000,
+          "headerBytes": 0,
+          "width": 200,
+          "height": 200
+        },
+        {
+          "name": "bmp_Print_ui.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_resume.bin",
+          "bytes": 24005,
+          "headerBytes": 5,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_return.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_russian.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_russian_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_sd.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_printing.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_pageDown.bin",
+          "bytes": 21533,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_step1_degree.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_percent.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroY.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroX.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroAll.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zero.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zDec.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zAdd.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_yDec.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_yAdd.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_X_mode.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_xDec.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_xAdd.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_wifi.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_value_blank.bin",
+          "bytes": 3925,
+          "headerBytes": 5,
+          "width": 70,
+          "height": 28
+        },
+        {
+          "name": "bmp_usb_disk_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_usb_disk.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_twoInOneSet.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_traditional_cn_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_degree.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_mm.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step5_percent.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move0_01.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move0_05.bin",
+          "bytes": 32760,
+          "headerBytes": 0,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move0_1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step1_mm.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_stop.bin",
+          "bytes": 24005,
+          "headerBytes": 5,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_temp.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_times_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_time_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_tool.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_traditional_cn.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_step_move10.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zeroZ.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_out.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extru1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_ext2_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_ext1_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_engraving.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_english_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_english.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_enable.bin",
+          "bytes": 5405,
+          "headerBytes": 5,
+          "width": 60,
+          "height": 45
+        },
+        {
+          "name": "bmp_eeprom_settings.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_disable.bin",
+          "bytes": 5405,
+          "headerBytes": 5,
+          "width": 60,
+          "height": 45
+        },
+        {
+          "name": "bmp_dir.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Dec.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Cut_times.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom7.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom6.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom5.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom4.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom3.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Add.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_arrow.bin",
+          "bytes": 345,
+          "headerBytes": 5
+        },
+        {
+          "name": "bmp_auto_off.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_baby_move0_01.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_baby_move0_05.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_baby_move0_1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extru2.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_back.bin",
+          "bytes": 21533,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 92
+        },
+        {
+          "name": "bmp_bed.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_bed_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_blank_sel.bin",
+          "bytes": 3925,
+          "headerBytes": 5,
+          "width": 70,
+          "height": 28
+        },
+        {
+          "name": "bmp_cloud.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_custom2.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_back70x40.bin",
+          "bytes": 5605,
+          "headerBytes": 5,
+          "width": 70,
+          "height": 40
+        },
+        {
+          "name": "bmp_operate.bin",
+          "bytes": 24005,
+          "headerBytes": 5,
+          "width": 120,
+          "height": 100
+        },
+        {
+          "name": "bmp_extruct.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extrude_opr.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov_changeSpeed.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_move_opr.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_mov.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_more.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_manual_off.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Mamual.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_machine_para.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_logo.bin",
+          "bytes": 307200,
+          "headerBytes": 0,
+          "width": 480,
+          "height": 320
+        },
+        {
+          "name": "bmp_Light_open.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Light_close.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling5.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling4.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling3.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling2.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_leveling.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_lcd_sd_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_fan.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_fan_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_filamentchange.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_file.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_french.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_french_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_extruct_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_function1.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_init_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        },
+        {
+          "name": "bmp_italy.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_italy_sel.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_language.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_Laser_ui.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_lcd_sd.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_in.bin",
+          "bytes": 32765,
+          "headerBytes": 5,
+          "width": 117,
+          "height": 140
+        },
+        {
+          "name": "bmp_zpos_state.bin",
+          "bytes": 4055,
+          "headerBytes": 5,
+          "width": 45,
+          "height": 45
+        }
+      ]
+    }
+  }
+}

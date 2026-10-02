@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Search, X, ArrowRight } from "lucide-react";
 import { useProject } from "@/lib/projectStore";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { STUDIO_LIST } from "@/lib/studioOrder";
 
 export default function CommandPalette({ open, onClose, setView }) {
   const { state, currentProject, selectParameter, setCategory, setView: _ } = useProject();
+  const { t } = useI18n();
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
   const inputRef = useRef(null);
@@ -19,17 +22,40 @@ export default function CommandPalette({ open, onClose, setView }) {
 
   const params = currentProject?.allParameters || [];
   const commands = [
-    { id: "v:dashboard", label: "Aller au tableau de bord", action: () => setView("dashboard") },
-    { id: "v:config", label: "Aller à la configuration", action: () => setView("config") },
-    { id: "v:diff", label: "Ouvrir le comparateur", action: () => setView("diff") },
-    { id: "v:validation", label: "Ouvrir la validation", action: () => setView("validation") },
-    { id: "v:history", label: "Voir l'historique", action: () => setView("history") },
-    { id: "v:snapshots", label: "Gérer les snapshots", action: () => setView("snapshots") },
-    { id: "v:code", label: "Éditeur de code", action: () => setView("code") },
-    { id: "v:calculators", label: "Calculateurs", action: () => setView("calculators") },
-    { id: "v:gcode", label: "Explorateur G-code", action: () => setView("gcode") },
-    { id: "v:docs", label: "Documentation", action: () => setView("docs") },
+    { id: "v:projects", label: t("command.projects"), action: () => setView("projects") },
+    { id: "v:dashboard", label: t("command.dashboard"), action: () => setView("dashboard") },
+    { id: "v:config", label: t("command.config"), action: () => setView("config") },
+    { id: "v:doctor", label: t("command.doctor"), action: () => setView("doctor") },
+    { id: "v:diff", label: t("command.diff"), action: () => setView("diff") },
+    { id: "v:history", label: t("command.history"), action: () => setView("history") },
+    { id: "v:snapshots", label: t("command.snapshots"), action: () => setView("snapshots") },
+    { id: "v:agent-build", label: t("command.agentBuild"), action: () => setView("agent-build") },
+    { id: "v:printer", label: t("command.printer"), action: () => setView("printer") },
+    { id: "v:code", label: t("command.code"), action: () => setView("code") },
+    { id: "v:calculators", label: t("command.calculators"), action: () => setView("calculators") },
+    { id: "v:gcode", label: t("command.gcode"), action: () => setView("gcode") },
+    { id: "v:docs", label: t("command.docs"), action: () => setView("docs") },
+    { id: "v:bootscreen", label: t("command.bootscreen"), action: () => setView("bootscreen") },
+    { id: "v:speaker", label: t("command.speaker"), action: () => setView("speaker") },
+    { id: "v:vibration", label: t("command.vibration"), action: () => setView("vibration") },
+    { id: "v:migration", label: t("command.migration"), action: () => setView("migration") },
+    { id: "v:git", label: t("command.git"), action: () => setView("git") },
+    { id: "v:browser", label: t("command.browser"), action: () => setView("browser") },
+    { id: "v:settings", label: t("command.settings"), action: () => setView("settings") },
   ];
+
+  // Tous les Studios (voir studioOrder.js), numérotés dans l'ordre logique de
+  // configuration, remplacent ici les trois entrées ad hoc ci-dessus
+  // (bootscreen/speaker/vibration) : avant cet ajout, les 36 autres Studios
+  // — Machine, PID, Probe & Endstop, Display, PlatformIO et les 30 assistants
+  // de AllStudios.jsx — étaient introuvables via la palette de commandes.
+  const studioCommands = STUDIO_LIST.map((s) => ({
+    id: `v:${s.id}`,
+    label: `#${s.number} ${s.label}`,
+    sub: s.phaseTitle,
+    action: () => setView(s.id),
+  }));
+  const commandsWithStudios = [...commands.filter((c) => !["v:bootscreen", "v:speaker", "v:vibration"].includes(c.id)), ...studioCommands];
 
   const paramResults = q
     ? params
@@ -37,7 +63,7 @@ export default function CommandPalette({ open, onClose, setView }) {
         .slice(0, 12)
     : [];
 
-  const all = [...commands.filter((c) => !q || c.label.toLowerCase().includes(q.toLowerCase())), ...paramResults.map((p) => ({ id: `p:${p.id}`, label: p.name, sub: p.description, param: p }))];
+  const all = [...commandsWithStudios.filter((c) => !q || c.label.toLowerCase().includes(q.toLowerCase())), ...paramResults.map((p) => ({ id: `p:${p.id}`, label: p.name, sub: p.description, param: p }))];
 
   function handleKey(e) {
     if (e.key === "ArrowDown") { e.preventDefault(); setIdx((i) => Math.min(i + 1, all.length - 1)); }
@@ -69,7 +95,7 @@ export default function CommandPalette({ open, onClose, setView }) {
             value={q}
             onChange={(e) => { setQ(e.target.value); setIdx(0); }}
             onKeyDown={handleKey}
-            placeholder="Rechercher paramètres, commandes, G-code…"
+            placeholder={t("command.placeholder")}
             className="flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
@@ -90,7 +116,7 @@ export default function CommandPalette({ open, onClose, setView }) {
               <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           ))}
-          {all.length === 0 && <div className="px-3 py-6 text-center text-sm text-muted-foreground">Aucun résultat</div>}
+          {all.length === 0 && <div className="px-3 py-6 text-center text-sm text-muted-foreground">{t("command.empty")}</div>}
         </div>
       </div>
     </div>

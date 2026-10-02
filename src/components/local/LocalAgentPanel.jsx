@@ -171,7 +171,7 @@ export default function LocalAgentPanel() {
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-7xl mx-auto space-y-5">
         <div className="flex items-start justify-between gap-4">
-          <div><h1 className="text-xl font-semibold flex items-center gap-2"><Activity className="w-5 h-5" /> Agent local</h1><p className="text-sm text-muted-foreground">Pont local sécurisé : fichiers Marlin, PlatformIO, Git et imprimante série.</p></div>
+          <div><h1 className="text-xl font-semibold flex items-center gap-2"><Activity className="w-5 h-5" /> Agent système</h1><p className="text-sm text-muted-foreground">Pont local sécurisé : fichiers Marlin, PlatformIO, Git et imprimante série.</p></div>
           <div className={cn("px-2.5 py-1 rounded-full text-xs font-medium", connected ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600")}>{connected ? "● CONNECTÉ" : "● DÉCONNECTÉ"}</div>
         </div>
 
@@ -263,5 +263,5 @@ export default function LocalAgentPanel() {
 
 function Card({ title, children }) { return <div className="rounded-lg border border-border bg-card p-4"><div className="font-semibold text-sm mb-3">{title}</div>{children}</div>; }
 function Field({ label, children }) { return <label className="block mb-2"><span className="text-xs text-muted-foreground">{label}</span>{children}</label>; }
-function Info({ label, value, mono }) { return <div className="flex justify-between gap-2 py-1.5 border-b border-border/40 text-sm"><span className="text-muted-foreground">{label}</span><span className={cn("text-right break-all", mono && "font-mono text-xs")}>{value}</span></div>; }
-function Btn({ icon: Icon, label, onClick, disabled, wide }) { return <button onClick={onClick} disabled={disabled} className={cn("flex items-center justify-center gap-1 px-2 py-2 text-xs rounded border disabled:opacity-40 hover:bg-accent", wide && "col-span-2 bg-primary text-primary-foreground border-primary hover:bg-primary/90")}><Icon className="w-3.5 h-3.5" />{label}</button>; }
+function Info({ label, value, mono = false }) { return <div className="flex justify-between gap-2 py-1.5 border-b border-border/40 text-sm"><span className="text-muted-foreground">{label}</span><span className={cn("text-right break-all", mono && "font-mono text-xs")}>{value}</span></div>; }
+function Btn({ icon: Icon, label, onClick, disabled, wide = false }) { return <button onClick={onClick} disabled={disabled} className={cn("flex items-center justify-center gap-1 px-2 py-2 text-xs rounded border disabled:opacity-40 hover:bg-accent", wide && "col-span-2 bg-primary text-primary-foreground border-primary hover:bg-primary/90")}><Icon className="w-3.5 h-3.5" />{label}</button>; }

@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useProject, parseProject } from "@/lib/projectStore";
 import { X, Upload, FileCode, FileJson, CheckCircle2, Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function ImportLocalFile({ open, onClose }) {
   const { addProject, selectProject } = useProject();
+  const { t } = useI18n();
   const [files, setFiles] = useState({});
   const [name, setName] = useState("");
   const [meta, setMeta] = useState(null);
@@ -35,7 +37,7 @@ export default function ImportLocalFile({ open, onClose }) {
             detectedMeta = data.metadata || null;
           }
         } catch {
-          setError(`Impossible de lire le fichier projet : ${file.name}`);
+          setError(`${t("imports.projectImportError")} ${file.name}`);
         }
       } else {
         const text = await file.text();
@@ -97,7 +99,7 @@ export default function ImportLocalFile({ open, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="w-full max-w-lg mx-4 bg-popover border border-border rounded-lg p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold flex items-center gap-2"><Upload className="w-4 h-4" /> Importer depuis l'ordinateur</h2>
+          <h2 className="font-semibold flex items-center gap-2"><Upload className="w-4 h-4" /> {t("imports.importsTitle")}</h2>
           <button onClick={onClose}><X className="w-4 h-4" /></button>
         </div>
 
@@ -109,8 +111,8 @@ export default function ImportLocalFile({ open, onClose }) {
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
         >
           <Upload className="w-7 h-7 mx-auto mb-2 text-muted-foreground" />
-          <div className="text-sm font-medium">Glissez vos fichiers ici ou cliquez pour parcourir</div>
-          <div className="text-xs text-muted-foreground mt-1">Configuration.h, Configuration_adv.h, _Bootscreen.h ou projet .mcfproject</div>
+          <div className="text-sm font-medium">{t("imports.dragDrop")}</div>
+          <div className="text-xs text-muted-foreground mt-1">{t("imports.accepted")}</div>
           <input
             ref={inputRef}
             type="file"
@@ -135,7 +137,7 @@ export default function ImportLocalFile({ open, onClose }) {
             ))}
             {hasConfig && (
               <div className="flex items-center gap-1.5 text-xs text-emerald-600 px-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Configuration.h détectée
+                <CheckCircle2 className="w-3.5 h-3.5" /> {t("imports.configDetected")}
               </div>
             )}
           </div>
@@ -144,11 +146,11 @@ export default function ImportLocalFile({ open, onClose }) {
         {fileNames.length > 0 && (
           <div className="mt-4 space-y-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Nom du projet</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full mt-1 px-2 py-1.5 text-sm rounded border border-input bg-background" placeholder="Mon imprimante" />
+              <label className="text-xs font-medium text-muted-foreground">{t("imports.projectName")}</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full mt-1 px-2 py-1.5 text-sm rounded border border-input bg-background" placeholder={t("imports.projectNamePlaceholder")} />
             </div>
             <button onClick={create} disabled={!hasConfig && fileNames.length === 0} className="w-full py-2 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40">
-              Créer le projet
+              {t("imports.createProject")}
             </button>
           </div>
         )}

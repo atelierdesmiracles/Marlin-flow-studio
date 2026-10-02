@@ -3,6 +3,7 @@ import { Music2, Play, Square, Plus, Trash2, Download, Save, Radio, Send as Send
 import { agentApi } from "@/lib/localAgent";
 import { useProject } from "@/lib/projectStore";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 const NOTES = {
   C4: 261.63, "C#4": 277.18, D4: 293.66, "D#4": 311.13, E4: 329.63, F4: 349.23, "F#4": 369.99, G4: 392, "G#4": 415.30, A4: 440, "A#4": 466.16, B4: 493.88,
@@ -219,6 +220,7 @@ function makeMidi(rows, bpm = 120) {
 
 
 export default function SpeakerStudio() {
+  const { t } = useI18n();
   const { currentProject } = useProject();
   const [rows, setRows] = useState(STARTER);
   const [selected, setSelected] = useState(0);
@@ -242,7 +244,7 @@ export default function SpeakerStudio() {
     let dead = false;
     async function detect() {
       try {
-        const candidates = ["Config.h", "Configuration.h"];
+        const candidates = ["Configuration.h", "Config.h"];
         for (const file of candidates) {
           try {
             const r = await agentApi.readConfiguration(file);
@@ -285,7 +287,7 @@ export default function SpeakerStudio() {
 
   async function preview() {
     stop(); stopRef.current = false; setPlaying(true);
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const AudioCtx = window.AudioContext || /** @type {any} */ (window).webkitAudioContext;
     if (!AudioCtx) { setStatus("⚠ Prévisualisation audio indisponible dans ce navigateur."); setPlaying(false); return; }
     const ctx = new AudioCtx(); audioRef.current = ctx;
     try {
@@ -332,10 +334,11 @@ export default function SpeakerStudio() {
     if (!currentProject?.localProjectPath) { setStatus("⚠ Aucun projet Marlin local ouvert."); return; }
     setBusy(true); setStatus("");
     try {
+      await agentApi.selectProject(currentProject.localProjectPath);
       let target;
       let content;
-      try { content = (await agentApi.readConfiguration("Config.h")).content; target = "Config.h"; }
-      catch { content = (await agentApi.readConfiguration("Configuration.h")).content; target = "Configuration.h"; }
+      try { content = (await agentApi.readConfiguration("Configuration.h")).content; target = "Configuration.h"; }
+      catch { content = (await agentApi.readConfiguration("Config.h")).content; target = "Config.h"; }
       content = upsertDefine(content, "SPEAKER", "", true);
       content = upsertDefine(content, "STARTUP_TUNE", `{ ${tonePairs(rows).join(", ")} }`, true);
       await agentApi.writeConfiguration(target, content, undefined);
@@ -347,9 +350,10 @@ export default function SpeakerStudio() {
     if (!currentProject?.localProjectPath) { setStatus("⚠ Aucun projet Marlin local ouvert."); return; }
     setBusy(true); setStatus("");
     try {
+      await agentApi.selectProject(currentProject.localProjectPath);
       let target, content;
-      try { content = (await agentApi.readConfiguration("Config.h")).content; target = "Config.h"; }
-      catch { content = (await agentApi.readConfiguration("Configuration.h")).content; target = "Configuration.h"; }
+      try { content = (await agentApi.readConfiguration("Configuration.h")).content; target = "Configuration.h"; }
+      catch { content = (await agentApi.readConfiguration("Config.h")).content; target = "Config.h"; }
       content = upsertDefine(content, "SPEAKER", "", true);
       if (eventEnabled.startup) content = upsertDefine(content, "STARTUP_TUNE", `{ ${tonePairs(events.startup || STARTER).join(", ")} }`, true);
       await agentApi.writeConfiguration(target, content, undefined);
@@ -369,65 +373,65 @@ export default function SpeakerStudio() {
   return <div className="h-full overflow-auto p-4 md:p-6">
     <div className="max-w-6xl mx-auto space-y-4">
       <div className="flex items-start justify-between gap-4">
-        <div><h1 className="text-xl font-semibold flex items-center gap-2"><Music2 className="w-5 h-5 text-primary" /> Studio Sonnerie / Speaker</h1><p className="text-sm text-muted-foreground mt-1">Crée des mélodies pour le speaker Marlin, prévisualise-les et génère M300 ou STARTUP_TUNE.</p></div>
-        <div className="flex gap-2"><button onClick={reset} className="px-3 py-2 border rounded-md text-sm flex gap-2 items-center"><RotateCcw className="w-4 h-4"/>Réinitialiser</button><button onClick={playing ? stop : preview} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm flex gap-2 items-center">{playing ? <Square className="w-4 h-4"/> : <Play className="w-4 h-4"/>}{playing ? "Arrêter" : "Écouter"}</button></div>
+        <div><h1 className="text-xl font-semibold flex items-center gap-2"><Music2 className="w-5 h-5 text-primary" /> {t("speaker.title")}</h1><p className="text-sm text-muted-foreground mt-1">{t("speaker.subtitle")}</p></div>
+        <div className="flex gap-2"><button onClick={reset} className="px-3 py-2 border rounded-md text-sm flex gap-2 items-center"><RotateCcw className="w-4 h-4"/>{t("speaker.resetEvents")}</button><button onClick={playing ? stop : preview} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm flex gap-2 items-center">{playing ? <Square className="w-4 h-4"/> : <Play className="w-4 h-4"/>}{playing ? t("speaker.stop") : t("speaker.listen")}</button></div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-4">
         <section className="border rounded-xl bg-card overflow-hidden">
-          <div className="p-3 border-b flex items-center justify-between"><div className="font-medium">Séquence · {rows.length} notes · {total} ms</div><button onClick={() => addRow()} className="px-2.5 py-1.5 rounded-md border text-sm flex items-center gap-1"><Plus className="w-4 h-4"/>Note</button></div>
+          <div className="p-3 border-b flex items-center justify-between"><div className="font-medium">{t("speaker.sequence")} · {rows.length} · {total} ms</div><button onClick={() => addRow()} className="px-2.5 py-1.5 rounded-md border text-sm flex items-center gap-1"><Plus className="w-4 h-4"/>{t("speaker.note")}</button></div>
           <div className="divide-y max-h-[55vh] overflow-auto">
             {rows.map((r, i) => <div key={i} className={cn("p-2.5 flex items-center gap-2", selected === i && "bg-primary/5")} onClick={() => setSelected(i)}>
               <span className="w-7 text-xs text-muted-foreground">{i + 1}</span>
-              <select value={r.note || "REST"} onChange={e => setRow(i, { note: e.target.value === "REST" ? null : e.target.value })} className="h-9 rounded-md border bg-background px-2 text-sm flex-1"><option value="REST">Silence / pause</option>{NOTE_NAMES.map(n => <option key={n} value={n}>{n} · {Math.round(NOTES[n])} Hz</option>)}</select>
+              <select value={r.note || "REST"} onChange={e => setRow(i, { note: e.target.value === "REST" ? null : e.target.value })} className="h-9 rounded-md border bg-background px-2 text-sm flex-1"><option value="REST">{t("speaker.silence")}</option>{NOTE_NAMES.map(n => <option key={n} value={n}>{n} · {Math.round(NOTES[n])} Hz</option>)}</select>
               <select value={r.duration} onChange={e => setRow(i, { duration: Number(e.target.value) })} className="h-9 rounded-md border bg-background px-2 text-sm w-28">{DURATIONS.map(d => <option key={d} value={d}>{d} ms</option>)}</select>
-              <button onClick={() => removeRow(i)} className="p-2 text-muted-foreground hover:text-destructive" title="Supprimer"><Trash2 className="w-4 h-4"/></button>
+              <button onClick={() => removeRow(i)} className="p-2 text-muted-foreground hover:text-destructive" title={t("speaker.delete")}><Trash2 className="w-4 h-4"/></button>
             </div>)}
           </div>
         </section>
 
         <aside className="space-y-4">
           <section className="border rounded-xl bg-card p-4 space-y-3">
-            <div className="font-medium flex items-center gap-2"><Music2 className="w-4 h-4"/>Fichier MIDI</div>
+            <div className="font-medium flex items-center gap-2"><Music2 className="w-4 h-4"/>{t("speaker.midiFile")}</div>
             <label className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2 cursor-pointer">
-              <Plus className="w-4 h-4"/>Importer un .mid / .midi
+              <Plus className="w-4 h-4"/>{t("speaker.importMidi")}
               <input type="file" accept=".mid,.midi,audio/midi,audio/x-midi" className="hidden" onChange={e => { importMidi(e.target.files?.[0]); e.target.value = ""; }}/>
             </label>
-            <button onClick={exportMidi} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Download className="w-4 h-4"/>Générer un fichier MIDI</button>
-            {midiName && <div className="text-xs text-muted-foreground truncate" title={midiName}>Source : {midiName}</div>}
-            <div className="text-[11px] text-muted-foreground">Import : MIDI Standard Format 0/1. Les accords sont convertis en ligne mélodique (note la plus aiguë au démarrage).</div>
+            <button onClick={exportMidi} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Download className="w-4 h-4"/>{t("speaker.generateMidi")}</button>
+            {midiName && <div className="text-xs text-muted-foreground truncate" title={midiName}>{t("speaker.source")} {midiName}</div>}
+            <div className="text-[11px] text-muted-foreground">{t("speaker.importInfo")}</div>
           </section>
           <section className="border rounded-xl bg-card p-4 space-y-3">
-            <div className="font-medium flex items-center gap-2"><Volume2 className="w-4 h-4"/>Paramètres audio</div>
-            <label className="text-sm block">Vitesse <input type="range" min="0.5" max="2" step="0.05" value={tempo} onChange={e => setTempo(Number(e.target.value))} className="w-full"/><span className="text-xs text-muted-foreground">{tempo.toFixed(2)}×</span></label>
-            <label className="text-sm block">Volume aperçu <input type="range" min="0.01" max="0.15" step="0.01" value={volume} onChange={e => setVolume(Number(e.target.value))} className="w-full"/></label>
+            <div className="font-medium flex items-center gap-2"><Volume2 className="w-4 h-4"/>{t("speaker.audioSettings")}</div>
+            <label className="text-sm block">{t("speaker.speed")} <input type="range" min="0.5" max="2" step="0.05" value={tempo} onChange={e => setTempo(Number(e.target.value))} className="w-full"/><span className="text-xs text-muted-foreground">{tempo.toFixed(2)}×</span></label>
+            <label className="text-sm block">{t("speaker.previewVolume")} <input type="range" min="0.01" max="0.15" step="0.01" value={volume} onChange={e => setVolume(Number(e.target.value))} className="w-full"/></label>
           </section>
           <section className="border rounded-xl bg-card p-4 space-y-3">
-            <div className="flex items-center justify-between gap-2"><div className="font-medium flex items-center gap-2"><Music2 className="w-4 h-4"/>Événements sonores</div><button onClick={resetEvents} className="text-xs underline">Réinitialiser</button></div>
-            <p className="text-xs text-muted-foreground">Associe une mélodie à chaque événement de l'imprimante. Les événements de début/fin sont des snippets G-code ; l'erreur dépend de l'hôte, et l'extinction sonore n'est possible qu'avant une extinction logicielle.</p>
+            <div className="flex items-center justify-between gap-2"><div className="font-medium flex items-center gap-2"><Music2 className="w-4 h-4"/>{t("speaker.soundEvents")}</div><button onClick={resetEvents} className="text-xs underline">{t("speaker.resetEvents")}</button></div>
+            <p className="text-xs text-muted-foreground">{t("speaker.soundEventsDesc")}</p>
             <div className="space-y-1.5">
               {EVENT_DEFS.map(e => { const Icon=e.icon; return <div key={e.id} className="flex items-center gap-2">
-                <button onClick={() => loadEvent(e.id)} className={cn("flex-1 text-left px-2.5 py-2 border rounded-md text-sm flex items-center gap-2", activeEvent === e.id && "border-primary bg-primary/5")}><Icon className="w-4 h-4"/><span>{e.label}</span><span className="ml-auto text-[11px] text-muted-foreground">{(events[e.id] || []).length} notes</span></button>
-                <input type="checkbox" checked={!!eventEnabled[e.id]} onChange={ev => setEventEnabled(prev => ({...prev, [e.id]: ev.target.checked}))} title="Activer l'événement" />
+                <button onClick={() => loadEvent(e.id)} className={cn("flex-1 text-left px-2.5 py-2 border rounded-md text-sm flex items-center gap-2", activeEvent === e.id && "border-primary bg-primary/5")}><Icon className="w-4 h-4"/><span>{({startup:t("speaker.eventStartup"),print_start:t("speaker.eventPrintStart"),error:t("speaker.eventError"),print_finish:t("speaker.eventPrintFinish"),shutdown:t("speaker.eventShutdown")})[e.id] || e.label}</span><span className="ml-auto text-[11px] text-muted-foreground">{(events[e.id] || []).length} notes</span></button>
+                <input type="checkbox" checked={!!eventEnabled[e.id]} onChange={ev => setEventEnabled(prev => ({...prev, [e.id]: ev.target.checked}))} title={t("speaker.enableEvent")} />
               </div>; })}
             </div>
-            <div className="flex gap-2"><button onClick={applyCurrentToEvent} className="flex-1 px-2.5 py-2 border rounded-md text-xs">Affecter la mélodie actuelle</button><button onClick={() => copyEvent(activeEvent)} className="px-2.5 py-2 border rounded-md text-xs flex items-center gap-1"><Copy className="w-3.5 h-3.5"/>Copier</button></div>
-            <button onClick={downloadEvents} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Download className="w-4 h-4"/>Exporter le pack d'événements</button>
+            <div className="flex gap-2"><button onClick={applyCurrentToEvent} className="flex-1 px-2.5 py-2 border rounded-md text-xs">{t("speaker.applyCurrent")}</button><button onClick={() => copyEvent(activeEvent)} className="px-2.5 py-2 border rounded-md text-xs flex items-center gap-1"><Copy className="w-3.5 h-3.5"/>{t("speaker.copy")}</button></div>
+            <button onClick={downloadEvents} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Download className="w-4 h-4"/>{t("speaker.exportEvents")}</button>
           </section>
           <section className="border rounded-xl bg-card p-4 space-y-3">
-            <div className="font-medium flex items-center gap-2"><Radio className="w-4 h-4"/>Marlin</div>
-            {speakerEnabled === true && <div className="text-sm text-emerald-600 flex gap-2"><CheckCircle2 className="w-4 h-4"/>SPEAKER activé · {configFile}</div>}
-            {speakerEnabled === false && <div className="text-sm text-amber-600 flex gap-2"><AlertTriangle className="w-4 h-4"/>SPEAKER non activé</div>}
-            {speakerEnabled == null && <div className="text-sm text-muted-foreground">Projet local non détecté ou configuration indisponible.</div>}
-            <button disabled={busy} onClick={saveStartupAndEvents} className="w-full px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm flex items-center justify-center gap-2 disabled:opacity-50"><Save className="w-4 h-4"/>{busy ? "Enregistrement…" : "Activer + intégrer le son de démarrage"}</button>
-            <button onClick={testPrinter} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Radio className="w-4 h-4"/>Tester la note sur l'imprimante</button>
-            <button onClick={sendGeneratedGcode} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><SendIcon/>Envoyer toute la musique en G-code</button>
+            <div className="font-medium flex items-center gap-2"><Radio className="w-4 h-4"/>{t("speaker.marlin")}</div>
+            {speakerEnabled === true && <div className="text-sm text-emerald-600 flex gap-2"><CheckCircle2 className="w-4 h-4"/>{t("speaker.speakerEnabled")} · {configFile}</div>}
+            {speakerEnabled === false && <div className="text-sm text-amber-600 flex gap-2"><AlertTriangle className="w-4 h-4"/>{t("speaker.speakerDisabled")}</div>}
+            {speakerEnabled == null && <div className="text-sm text-muted-foreground">{t("speaker.noLocalConfig")}</div>}
+            <button disabled={busy} onClick={saveStartupAndEvents} className="w-full px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm flex items-center justify-center gap-2 disabled:opacity-50"><Save className="w-4 h-4"/>{busy ? t("speaker.saving") : t("speaker.integrateStartup")}</button>
+            <button onClick={testPrinter} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><Radio className="w-4 h-4"/>{t("speaker.testPrinter")}</button>
+            <button onClick={sendGeneratedGcode} className="w-full px-3 py-2 border rounded-md text-sm flex items-center justify-center gap-2"><SendIcon/>{t("speaker.sendAll")}</button>
           </section>
           <section className="border rounded-xl bg-card p-4 space-y-2">
-            <div className="font-medium">Exports</div>
-            <button onClick={() => download("marlin-sonnerie.gcode", gcode(rows))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>Générer G-code M300</button>
-            <button onClick={() => download("STARTUP_TUNE.txt", startupTune(rows))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>Exporter STARTUP_TUNE</button>
-            <button onClick={() => download("melodie-marlin.json", JSON.stringify({ version: 1, rows }, null, 2))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>Exporter projet JSON</button>
+            <div className="font-medium">{t("speaker.exports")}</div>
+            <button onClick={() => download("marlin-sonnerie.gcode", gcode(rows))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>{t("speaker.gcodeM300")}</button>
+            <button onClick={() => download("STARTUP_TUNE.txt", startupTune(rows))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>{t("speaker.startupTune")}</button>
+            <button onClick={() => download("melodie-marlin.json", JSON.stringify({ version: 1, rows }, null, 2))} className="w-full px-3 py-2 border rounded-md text-sm flex items-center gap-2"><Download className="w-4 h-4"/>{t("speaker.jsonProject")}</button>
           </section>
         </aside>
       </div>

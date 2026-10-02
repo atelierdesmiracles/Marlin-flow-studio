@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { agentApi } from "@/lib/localAgent";
 import { useProject } from "@/lib/projectStore";
 import { Activity, Download, Save, Play, Square, Wand2, ShieldCheck, AlertTriangle, Gauge, Radio, FileCode2, BarChart3, Upload, FileText, RotateCcw } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const AXES = ["X", "Y", "Z"];
 const SHAPERS = [
@@ -95,6 +96,7 @@ function analyzeSensor(text) {
 
 export default function VibrationStudio() {
   const { currentProject } = useProject();
+  const { t } = useI18n();
   const [tab, setTab] = useState("tune");
   const [axis, setAxis] = useState("X");
   const [freq, setFreq] = useState({ X: 40, Y: 40, Z: 20 });
@@ -110,7 +112,12 @@ export default function VibrationStudio() {
   const [playing, setPlaying] = useState(false);
 
   const projectLabel = currentProject?.name || "Projet Marlin";
-  const configTargets = useMemo(() => ["Configuration.h", "Configuration_adv.h"], []);
+  const configTargets = useMemo(() => {
+    const names = Object.keys(currentProject?.parsedFiles || {});
+    return names.includes("Configuration.h")
+      ? ["Configuration.h", "Configuration_adv.h"].filter(name => names.includes(name))
+      : (names.includes("Config.h") ? ["Config.h"] : []);
+  }, [currentProject]);
 
   async function loadConfig() {
     const next = {};
@@ -127,7 +134,7 @@ export default function VibrationStudio() {
       }
     }
     setConfigs(next);
-    const preferred = next["Configuration_adv.h"] || next["Configuration.h"];
+    const preferred = next["Configuration.h"] || next["Configuration_adv.h"] || next["Config.h"];
     const text = preferred?.content || "";
     const read = (name, fallback) => { const m = text.match(new RegExp(`^\\s*#\\s*define\\s+${name}\\s+([^\\s/]+)`, "m")); return m ? m[1] : fallback; };
     setFreq({ X: num(read("SHAPING_FREQ_X", 40), 40), Y: num(read("SHAPING_FREQ_Y", 40), 40), Z: num(read("SHAPING_FREQ_Z", 20), 20) });
@@ -180,6 +187,8 @@ export default function VibrationStudio() {
     if (!available.length) return setStatus("Charge d'abord Configuration.h et Configuration_adv.h.");
     const results = [];
     try {
+      if (!currentProject?.localProjectPath) throw new Error("Aucun projet local sélectionné.");
+      await agentApi.selectProject(currentProject.localProjectPath);
       for (const file of available) {
         const current = configs[file];
         const content = upsertVibrationBlock(current.content);
@@ -196,6 +205,8 @@ export default function VibrationStudio() {
     if (!available.length) return setStatus("Charge d'abord les deux fichiers de configuration.");
     const results = [];
     try {
+      if (!currentProject?.localProjectPath) throw new Error("Aucun projet local sélectionné.");
+      await agentApi.selectProject(currentProject.localProjectPath);
       for (const file of available) {
         const current = configs[file];
         const content = upsertVibrationBlock(current.content, true);
@@ -239,40 +250,40 @@ export default function VibrationStudio() {
   return <div className="h-full overflow-y-auto p-5 bg-background">
     <div className="max-w-6xl mx-auto space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><div className="flex items-center gap-2"><Activity className="w-6 h-6"/><h1 className="text-xl font-semibold">Vibration Studio</h1></div><p className="text-sm text-muted-foreground mt-1">Réglage du ringing, Input Shaping et Fixed-Time Motion pour {projectLabel}.</p></div>
-        <div className="flex gap-2"><button onClick={loadConfig} className="px-3 py-2 rounded-lg border border-border text-sm flex items-center gap-2"><Radio className="w-4 h-4"/>Relire Marlin</button><button onClick={()=>{setResult(null);setCsv("");setStatus("Analyse capteur réinitialisée.");}} className="px-3 py-2 rounded-lg border border-border text-sm flex items-center gap-2"><RotateCcw className="w-4 h-4"/>Réinitialiser analyse</button></div>
+        <div><div className="flex items-center gap-2"><Activity className="w-6 h-6"/><h1 className="text-xl font-semibold">{t("vibration.title")}</h1></div><p className="text-sm text-muted-foreground mt-1">{t("vibration.subtitle")} {projectLabel}.</p></div>
+        <div className="flex gap-2"><button onClick={loadConfig} className="px-3 py-2 rounded-lg border border-border text-sm flex items-center gap-2"><Radio className="w-4 h-4"/>{t("vibration.reloadMarlin")}</button><button onClick={()=>{setResult(null);setCsv("");setStatus("Analyse capteur réinitialisée.");}} className="px-3 py-2 rounded-lg border border-border text-sm flex items-center gap-2"><RotateCcw className="w-4 h-4"/>{t("vibration.resetAnalysis")}</button></div>
       </div>
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5"/><span>Le studio prépare et applique des paramètres Marlin, mais ne mesure pas physiquement les vibrations sans capteur externe. Pour le réglage réel, utilise un test de fréquence, une ringing tower ou des données d'accéléromètre.</span></div>
-      <div className="flex gap-2 border-b border-border">{[["tune","Réglage"],["config","Configurations"],["sweep","Tests G-code"],["ftm","FT Motion"],["sensor","Accéléromètre CSV"]].map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`px-3 py-2 text-sm ${tab===id?"border-b-2 border-primary font-medium":"text-muted-foreground"}`}>{label}</button>)}</div>
+      <div className="flex gap-2 border-b border-border">{[["tune",t("vibration.tune")],["config",t("vibration.config")],["sweep",t("vibration.sweep")],["ftm",t("vibration.ftm")],["sensor",t("vibration.sensor")]].map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`px-3 py-2 text-sm ${tab===id?"border-b-2 border-primary font-medium":"text-muted-foreground"}`}>{label}</button>)}</div>
 
       {tab === "tune" && <div className="grid lg:grid-cols-3 gap-4">
-        <div className={card+" lg:col-span-2"}><h2 className="font-medium mb-3">Fréquences de résonance</h2><div className="grid md:grid-cols-3 gap-3">{AXES.map(a=><div key={a} className="rounded-lg border p-3"><div className="font-medium mb-2">Axe {a}</div><label className="text-xs text-muted-foreground">Fréquence (Hz)</label><input type="number" min="1" max="200" step="0.1" value={freq[a]} onChange={e=>setFreq({...freq,[a]:e.target.value})} className="w-full mt-1 px-2 py-1.5 rounded border bg-background"/><label className="text-xs text-muted-foreground block mt-2">Zeta / amortissement</label><input type="number" min="0" max="1" step="0.01" value={zeta[a]} onChange={e=>setZeta({...zeta,[a]:e.target.value})} className="w-full mt-1 px-2 py-1.5 rounded border bg-background"/></div>)}</div><div className="flex flex-wrap gap-2 mt-4"><button onClick={saveClassic} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2 items-center"><Save className="w-4 h-4"/>Intégrer ZV X/Y</button><button onClick={sendM593} className="px-3 py-2 rounded-lg border text-sm flex gap-2 items-center"><Play className="w-4 h-4"/>Tester M593</button></div></div>
-        <div className={card}><h2 className="font-medium mb-3">Axe sélectionné</h2><div className="flex gap-2">{AXES.map(a=><button key={a} onClick={()=>setAxis(a)} className={`flex-1 py-2 rounded border ${axis===a?"bg-primary text-primary-foreground":""}`}>{a}</button>)}</div><div className="mt-5 text-3xl font-semibold">{freq[axis]} <span className="text-base font-normal">Hz</span></div><p className="text-xs text-muted-foreground mt-1">Zeta {zeta[axis]}</p><div className="mt-5"><label className="text-xs text-muted-foreground">Shaper FTM</label><select value={shaper[axis]} onChange={e=>setShaper({...shaper,[axis]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background">{SHAPERS.map(([v,n])=><option value={v} key={v}>{n}</option>)}</select></div></div>
+        <div className={card+" lg:col-span-2"}><h2 className="font-medium mb-3">{t("vibration.resonance")}</h2><div className="grid md:grid-cols-3 gap-3">{AXES.map(a=><div key={a} className="rounded-lg border p-3"><div className="font-medium mb-2">{t("vibration.axisLabel")} {a}</div><label className="text-xs text-muted-foreground">{t("vibration.frequency")} (Hz)</label><input type="number" min="1" max="200" step="0.1" value={freq[a]} onChange={e=>setFreq({...freq,[a]:e.target.value})} className="w-full mt-1 px-2 py-1.5 rounded border bg-background"/><label className="text-xs text-muted-foreground block mt-2">{t("vibration.zeta")}</label><input type="number" min="0" max="1" step="0.01" value={zeta[a]} onChange={e=>setZeta({...zeta,[a]:e.target.value})} className="w-full mt-1 px-2 py-1.5 rounded border bg-background"/></div>)}</div><div className="flex flex-wrap gap-2 mt-4"><button onClick={saveClassic} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2 items-center"><Save className="w-4 h-4"/>{t("vibration.integrateZV")}</button><button onClick={sendM593} className="px-3 py-2 rounded-lg border text-sm flex gap-2 items-center"><Play className="w-4 h-4"/>{t("vibration.testM593")}</button></div></div>
+        <div className={card}><h2 className="font-medium mb-3">{t("vibration.selectedAxis")}</h2><div className="flex gap-2">{AXES.map(a=><button key={a} onClick={()=>setAxis(a)} className={`flex-1 py-2 rounded border ${axis===a?"bg-primary text-primary-foreground":""}`}>{a}</button>)}</div><div className="mt-5 text-3xl font-semibold">{freq[axis]} <span className="text-base font-normal">Hz</span></div><p className="text-xs text-muted-foreground mt-1">Zeta {zeta[axis]}</p><div className="mt-5"><label className="text-xs text-muted-foreground">{t("vibration.shaperFTM")}</label><select value={shaper[axis]} onChange={e=>setShaper({...shaper,[axis]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background">{SHAPERS.map(([v,n])=><option value={v} key={v}>{n}</option>)}</select></div></div>
       </div>}
 
       {tab === "config" && <div className="space-y-4">
         <div className={card}>
-          <h2 className="font-medium mb-1">Prise en charge des vibrations — deux fichiers</h2>
-          <p className="text-sm text-muted-foreground">Le studio lit et peut synchroniser le profil de vibration dans <code>Configuration.h</code> et <code>Configuration_adv.h</code>. Chaque écriture utilise le SHA courant et le mécanisme de sauvegarde de l'Agent.</p>
+          <h2 className="font-medium mb-1">{t("vibration.supportTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("vibration.supportDesc")}</p>
           <div className="grid md:grid-cols-2 gap-3 mt-4">
             {configTargets.map(file => {
               const c = configs[file];
               const active = c?.content && (hasDefine(c.content,"INPUT_SHAPING_X") || hasDefine(c.content,"INPUT_SHAPING_Y") || hasDefine(c.content,"FT_MOTION"));
               return <div key={file} className="rounded-lg border p-4">
-                <div className="flex items-center justify-between gap-2"><b>{file}</b><span className={`text-xs px-2 py-1 rounded-full ${c ? (active ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground") : "bg-amber-500/10 text-amber-600"}`}>{c ? (active ? "Vibration active" : "Disponible") : "Absent"}</span></div>
-                <div className="text-xs text-muted-foreground mt-2">{c ? "Fichier lu depuis le projet sélectionné." : "Ce fichier n'a pas été trouvé dans le projet."}</div>
+                <div className="flex items-center justify-between gap-2"><b>{file}</b><span className={`text-xs px-2 py-1 rounded-full ${c ? (active ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground") : "bg-amber-500/10 text-amber-600"}`}>{c ? (active ? t("vibration.active") : t("vibration.available")) : t("vibration.absent")}</span></div>
+                <div className="text-xs text-muted-foreground mt-2">{c ? t("vibration.fileRead") : t("vibration.fileMissing")}</div>
                 {c && <div className="grid grid-cols-2 gap-2 mt-3 text-xs"><div className="border rounded p-2">Input Shaping X/Y<br/><b>{hasDefine(c.content,"INPUT_SHAPING_X") || hasDefine(c.content,"INPUT_SHAPING_Y") ? "activé" : "non activé"}</b></div><div className="border rounded p-2">FT Motion<br/><b>{hasDefine(c.content,"FT_MOTION") ? "activé" : "non activé"}</b></div></div>}
               </div>;
             })}
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
-            <button onClick={saveClassic} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex items-center gap-2"><Save className="w-4 h-4"/>Activer Input Shaping dans les 2 fichiers</button>
-            <button onClick={saveFTM} className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2"><ShieldCheck className="w-4 h-4"/>Activer FTM dans les 2 fichiers</button>
-            <button onClick={loadConfig} className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2"><Radio className="w-4 h-4"/>Relire les 2 fichiers</button>
+            <button onClick={saveClassic} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex items-center gap-2"><Save className="w-4 h-4"/>{t("vibration.activateInput")}</button>
+            <button onClick={saveFTM} className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2"><ShieldCheck className="w-4 h-4"/>{t("vibration.activateFTM")}</button>
+            <button onClick={loadConfig} className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2"><Radio className="w-4 h-4"/>{t("vibration.readFiles")}</button>
           </div>
         </div>
         <div className={card}>
-          <h3 className="font-medium">Ce qui est réellement écrit</h3>
+          <h3 className="font-medium">{t("vibration.writtenTitle")}</h3>
           <ul className="mt-2 text-sm text-muted-foreground space-y-1 list-disc pl-5">
             <li><code>Configuration.h</code> et <code>Configuration_adv.h</code> reçoivent le même profil avec des garde-fous <code>#ifndef</code>.</li>
             <li>Les fréquences X/Y et les valeurs Zeta sont synchronisées avec les valeurs du studio.</li>
@@ -282,21 +293,21 @@ export default function VibrationStudio() {
         </div>
       </div>}
 
-      {tab === "sweep" && <div className={card}><h2 className="font-medium mb-3">Générateur de test de résonance</h2><div className="grid md:grid-cols-5 gap-3">{[["De",from,setFrom],["À",to,setTo],["Pas",step,setStep]].map(([l,v,s])=><label className="text-xs text-muted-foreground" key={l}>{l} Hz<input type="number" value={v} onChange={e=>s(e.target.value)} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></label>)}<label className="text-xs text-muted-foreground">Axe<select value={axis} onChange={e=>setAxis(e.target.value)} className="w-full mt-1 px-2 py-2 rounded border bg-background">{AXES.map(a=><option key={a}>{a}</option>)}</select></label><label className="text-xs text-muted-foreground">Zeta<input type="number" step="0.01" value={zeta[axis]} onChange={e=>setZeta({...zeta,[axis]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></label></div><div className="flex gap-2 mt-4"><button onClick={runSweep} disabled={playing} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><Download className="w-4 h-4"/>Générer le sweep M593</button><button onClick={()=>download(`Ringing-Tower-${axis}.gcode`,buildRingingTower({axis,from:num(from,15),to:num(to,60),height:60,layer:0.2,startSpeed:30,endSpeed:120}))} className="px-3 py-2 rounded-lg border text-sm">Ringing Tower G-code</button></div></div>}
+      {tab === "sweep" && <div className={card}><h2 className="font-medium mb-3">{t("vibration.sweepTitle")}</h2><div className="grid md:grid-cols-5 gap-3">{[["De",from,setFrom],["À",to,setTo],["Pas",step,setStep]].map(([l,v,s])=><label className="text-xs text-muted-foreground" key={l}>{l} Hz<input type="number" value={v} onChange={e=>s(e.target.value)} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></label>)}<label className="text-xs text-muted-foreground">{t("vibration.axisLabel")}<select value={axis} onChange={e=>setAxis(e.target.value)} className="w-full mt-1 px-2 py-2 rounded border bg-background">{AXES.map(a=><option key={a}>{a}</option>)}</select></label><label className="text-xs text-muted-foreground">Zeta<input type="number" step="0.01" value={zeta[axis]} onChange={e=>setZeta({...zeta,[axis]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></label></div><div className="flex gap-2 mt-4"><button onClick={runSweep} disabled={playing} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><Download className="w-4 h-4"/>{t("vibration.generateSweep")}</button><button onClick={()=>download(`Ringing-Tower-${axis}.gcode`,buildRingingTower({axis,from:num(from,15),to:num(to,60),height:60,layer:0.2,startSpeed:30,endSpeed:120}))} className="px-3 py-2 rounded-lg border text-sm">{t("vibration.ringingTower")}</button></div></div>}
 
-      {tab === "ftm" && <div className={card}><h2 className="font-medium mb-2">Fixed-Time Motion / Input Shaping avancé</h2><p className="text-sm text-muted-foreground mb-4">Marlin récent expose M493 et plusieurs shapers : ZV, ZVD, ZVDD, ZVDDD, EI, 2HEI, 3HEI et MZV.</p><div className="grid md:grid-cols-2 gap-3">{AXES.map(a=><div className="border rounded-lg p-3" key={a}><b>Axe {a}</b><select value={shaper[a]} onChange={e=>setShaper({...shaper,[a]:e.target.value})} className="w-full mt-2 px-2 py-2 rounded border bg-background">{SHAPERS.map(([v,n])=><option value={v} key={v}>{n}</option>)}</select><input type="number" value={freq[a]} onChange={e=>setFreq({...freq,[a]:e.target.value})} className="w-full mt-2 px-2 py-2 rounded border bg-background"/><label className="text-xs text-muted-foreground block mt-2">Vibration tolerance</label><input type="number" min="0" max="1" step="0.01" value={vtol[a]} onChange={e=>setVtol({...vtol,[a]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></div>)}</div><div className="flex gap-2 mt-4"><button onClick={saveFTM} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><ShieldCheck className="w-4 h-4"/>Intégrer FTM</button><button onClick={sendM493} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Play className="w-4 h-4"/>Tester M493</button></div></div>}
+      {tab === "ftm" && <div className={card}><h2 className="font-medium mb-2">{t("vibration.ftmTitle")}</h2><p className="text-sm text-muted-foreground mb-4">{t("vibration.ftmDesc")}</p><div className="grid md:grid-cols-2 gap-3">{AXES.map(a=><div className="border rounded-lg p-3" key={a}><b>{t("vibration.axisLabel")} {a}</b><select value={shaper[a]} onChange={e=>setShaper({...shaper,[a]:e.target.value})} className="w-full mt-2 px-2 py-2 rounded border bg-background">{SHAPERS.map(([v,n])=><option value={v} key={v}>{n}</option>)}</select><input type="number" value={freq[a]} onChange={e=>setFreq({...freq,[a]:e.target.value})} className="w-full mt-2 px-2 py-2 rounded border bg-background"/><label className="text-xs text-muted-foreground block mt-2">{t("vibration.vibrationTolerance")}</label><input type="number" min="0" max="1" step="0.01" value={vtol[a]} onChange={e=>setVtol({...vtol,[a]:e.target.value})} className="w-full mt-1 px-2 py-2 rounded border bg-background"/></div>)}</div><div className="flex gap-2 mt-4"><button onClick={saveFTM} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><ShieldCheck className="w-4 h-4"/>{t("vibration.integrateFTM")}</button><button onClick={sendM493} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Play className="w-4 h-4"/>{t("vibration.testM493")}</button></div></div>}
 
       {tab === "sensor" && <div className="space-y-4">
-        <div className={card}><div className="flex flex-wrap justify-between gap-3 items-start"><div><h2 className="font-medium mb-1">Accelerometer Studio</h2><p className="text-sm text-muted-foreground">Importe une mesure CSV d'accéléromètre. Formats acceptés : <code>temps,accélération</code> ou <code>temps,X,Y,Z</code>. L'analyse FFT est limitée à 200 Hz pour cibler les résonances mécaniques.</p></div><label className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2 cursor-pointer"><Upload className="w-4 h-4"/>Importer CSV<input type="file" accept=".csv,.txt" className="hidden" onChange={e=>importCsvFile(e.target.files?.[0])}/></label></div>
+        <div className={card}><div className="flex flex-wrap justify-between gap-3 items-start"><div><h2 className="font-medium mb-1">{t("vibration.accelerometer")}</h2><p className="text-sm text-muted-foreground">{t("vibration.sensorDesc")}</p></div><label className="px-3 py-2 rounded-lg border text-sm flex items-center gap-2 cursor-pointer"><Upload className="w-4 h-4"/>{t("vibration.importCSV")}<input type="file" accept=".csv,.txt" className="hidden" onChange={e=>importCsvFile(e.target.files?.[0])}/></label></div>
           <textarea value={csv} onChange={e=>setCsv(e.target.value)} placeholder={'temps,X,Y,Z\n0.000,0.12,0.03,0.01\n0.001,0.18,0.05,0.02\n...'} className="w-full h-40 mt-3 rounded-lg border bg-background p-3 font-mono text-xs"/>
-          <div className="flex flex-wrap gap-2 mt-3"><button onClick={analyzeCsv} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><BarChart3 className="w-4 h-4"/>Analyser FFT</button>{result&&<><button onClick={applySensorResult} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Wand2 className="w-4 h-4"/>Appliquer aux axes</button><button onClick={downloadAnalysis} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Download className="w-4 h-4"/>Exporter analyse</button></>}</div>
+          <div className="flex flex-wrap gap-2 mt-3"><button onClick={analyzeCsv} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm flex gap-2"><BarChart3 className="w-4 h-4"/>{t("vibration.analyzeFFT")}</button>{result&&<><button onClick={applySensorResult} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Wand2 className="w-4 h-4"/>{t("vibration.applyAxes")}</button><button onClick={downloadAnalysis} className="px-3 py-2 rounded-lg border text-sm flex gap-2"><Download className="w-4 h-4"/>{t("vibration.exportAnalysis")}</button></>}</div>
         </div>
-        {result && <div className="grid lg:grid-cols-3 gap-4"><div className={card}><h3 className="font-medium mb-3">Résonances détectées</h3>{result.axes.map(a=><button key={a.axis} onClick={()=>setSensorAxis(a.axis)} className={`w-full text-left p-3 rounded-lg border mb-2 ${sensorAxis===a.axis?"bg-primary/10 border-primary":""}`}><div className="flex justify-between"><span>Axe {a.axis}</span><b>{a.frequency.toFixed(2)} Hz</b></div><div className="text-xs text-muted-foreground mt-1">{a.peaks.slice(0,3).map(p=>`${p.f.toFixed(1)} Hz`).join(" · ")}</div></button>)}<div className="text-xs text-muted-foreground mt-3">{result.samples} échantillons · fréquence d'échantillonnage {result.sampleRate.toFixed(1)} Hz</div></div>
-          <div className={card+" lg:col-span-2"}><div className="flex justify-between items-center mb-3"><h3 className="font-medium">Spectre FFT — axe {sensorAxis}</h3><span className="text-xs text-muted-foreground">0–200 Hz</span></div>{(() => { const a=result.axes.find(x=>x.axis===sensorAxis)||result.axes[0]; const bins=a?.spectrum||[]; return <div className="h-64 flex items-end gap-px border-b border-l p-2 overflow-hidden">{bins.filter((_,i)=>i%Math.max(1,Math.ceil(bins.length/160))===0).map((b,i)=><div key={i} title={`${b.f.toFixed(2)} Hz`} className="flex-1 min-w-[2px] bg-primary/70" style={{height:`${Math.max(2,b.level*100)}%`}}/> )}</div>; })()}<div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-3">{(result.axes.find(x=>x.axis===sensorAxis)?.peaks||[]).map((p,i)=><div key={i} className="border rounded p-2 text-xs"><div className="text-muted-foreground">Pic {i+1}</div><b>{p.f.toFixed(2)} Hz</b></div>)}</div></div></div>}
+        {result && <div className="grid lg:grid-cols-3 gap-4"><div className={card}><h3 className="font-medium mb-3">{t("vibration.resonancesDetected")}</h3>{result.axes.map(a=><button key={a.axis} onClick={()=>setSensorAxis(a.axis)} className={`w-full text-left p-3 rounded-lg border mb-2 ${sensorAxis===a.axis?"bg-primary/10 border-primary":""}`}><div className="flex justify-between"><span>Axe {a.axis}</span><b>{a.frequency.toFixed(2)} Hz</b></div><div className="text-xs text-muted-foreground mt-1">{a.peaks.slice(0,3).map(p=>`${p.f.toFixed(1)} Hz`).join(" · ")}</div></button>)}<div className="text-xs text-muted-foreground mt-3">{result.samples} {t("vibration.samples")} · {t("vibration.sampleRate")} {result.sampleRate.toFixed(1)} Hz</div></div>
+          <div className={card+" lg:col-span-2"}><div className="flex justify-between items-center mb-3"><h3 className="font-medium">{t("vibration.spectrum")} {sensorAxis}</h3><span className="text-xs text-muted-foreground">0–200 Hz</span></div>{(() => { const a=result.axes.find(x=>x.axis===sensorAxis)||result.axes[0]; const bins=a?.spectrum||[]; return <div className="h-64 flex items-end gap-px border-b border-l p-2 overflow-hidden">{bins.filter((_,i)=>i%Math.max(1,Math.ceil(bins.length/160))===0).map((b,i)=><div key={i} title={`${b.f.toFixed(2)} Hz`} className="flex-1 min-w-[2px] bg-primary/70" style={{height:`${Math.max(2,b.level*100)}%`}}/> )}</div>; })()}<div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-3">{(result.axes.find(x=>x.axis===sensorAxis)?.peaks||[]).map((p,i)=><div key={i} className="border rounded p-2 text-xs"><div className="text-muted-foreground">{t("vibration.peak")} {i+1}</div><b>{p.f.toFixed(2)} Hz</b></div>)}</div></div></div>}
       </div>}
 
       {status && <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm">{status}</div>}
-      <div className="text-xs text-muted-foreground flex items-center gap-2"><Gauge className="w-3.5 h-3.5"/>M593 est utilisé pour le ZV intégré ; M493 correspond au Fixed-Time Motion de Marlin récent.</div>
+      <div className="text-xs text-muted-foreground flex items-center gap-2"><Gauge className="w-3.5 h-3.5"/>{t("vibration.footer")}</div>
     </div>
   </div>;
 }

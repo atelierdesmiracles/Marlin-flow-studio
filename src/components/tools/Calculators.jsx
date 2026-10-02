@@ -1,21 +1,24 @@
 import React, { useState } from "react";
 import { Calculator, Gauge, CircleDot, Link2, Wrench } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
-const TABS = [
-  { id: "steps", label: "Steps/mm", icon: Gauge },
-  { id: "extruder", label: "Extrudeur", icon: CircleDot },
-  { id: "belt", label: "Courroie", icon: Link2 },
-  { id: "leadscrew", label: "Vis", icon: Wrench },
+const TAB_IDS = [
+  ["steps", "Steps/mm", Gauge, "steps"],
+  ["extruder", "Extrudeur", CircleDot, "extruder"],
+  ["belt", "Courroie", Link2, "belt"],
+  ["leadscrew", "Vis", Wrench, "leadscrew"],
 ];
 
 export default function Calculators() {
+  const { t } = useI18n();
   const [tab, setTab] = useState("steps");
+  const tabs = TAB_IDS.map(([id, fallback, icon, key]) => ({ id, label: t(`calculator.${key}`) || fallback, icon }));
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-xl font-semibold mb-4 flex items-center gap-2"><Calculator className="w-5 h-5" /> Calculateurs</h1>
+        <h1 className="text-xl font-semibold mb-4 flex items-center gap-2"><Calculator className="w-5 h-5" /> {t("calculator.title")}</h1>
         <div className="flex gap-1 mb-4 border-b border-border">
-          {TABS.map((t) => {
+          {tabs.map((t) => {
             const Icon = t.icon;
             return (
               <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-1.5 px-3 py-2 text-sm border-b-2 ${tab === t.id ? "border-primary font-medium" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
@@ -55,6 +58,7 @@ function Result({ label, value, unit }) {
 }
 
 function StepsCalc() {
+  const { t } = useI18n();
   const [steps, setSteps] = useState(200);
   const [micro, setMicro] = useState(16);
   const [pitch, setPitch] = useState(2);
@@ -62,19 +66,20 @@ function StepsCalc() {
   const result = (steps * micro) / (pitch * ratio);
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Calcule les steps/mm pour un axe à vis (moteur pas à pas + vis trapézoïdale).</p>
+      <p className="text-sm text-muted-foreground">{t("calculator.screwDesc")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Steps par tour" value={steps} onChange={setSteps} suffix="steps" />
-        <Field label="Microsteps" value={micro} onChange={setMicro} suffix="x" />
-        <Field label="Pas de vis" value={pitch} onChange={setPitch} suffix="mm" />
-        <Field label="Rapport d'engrenage" value={ratio} onChange={setRatio} suffix=":1" />
+        <Field label={t("calculator.stepsPerTurn")} value={steps} onChange={setSteps} suffix="steps" />
+        <Field label={t("calculator.microsteps")} value={micro} onChange={setMicro} suffix="x" />
+        <Field label={t("calculator.screwPitch")} value={pitch} onChange={setPitch} suffix="mm" />
+        <Field label={t("calculator.gearRatio")} value={ratio} onChange={setRatio} suffix=":1" />
       </div>
-      <Result label="Steps/mm" value={result.toFixed(2)} unit="steps/mm" />
+      <Result label={t("calculator.stepsResult")} value={result.toFixed(2)} unit="steps/mm" />
     </div>
   );
 }
 
 function ExtruderCalc() {
+  const { t } = useI18n();
   const [steps, setSteps] = useState(200);
   const [micro, setMicro] = useState(16);
   const [dia, setDia] = useState(7);
@@ -82,19 +87,20 @@ function ExtruderCalc() {
   const result = (steps * micro * ratio) / (Math.PI * dia);
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Steps/mm pour un extrudeur à engrenages (extrudeur BMG-like).</p>
+      <p className="text-sm text-muted-foreground">{t("calculator.extruderDesc")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Steps par tour" value={steps} onChange={setSteps} suffix="steps" />
-        <Field label="Microsteps" value={micro} onChange={setMicro} suffix="x" />
-        <Field label="Diamètre engrenage" value={dia} onChange={setDia} suffix="mm" />
-        <Field label="Rapport d'engrenage" value={ratio} onChange={setRatio} suffix=":1" />
+        <Field label={t("calculator.stepsPerTurn")} value={steps} onChange={setSteps} suffix="steps" />
+        <Field label={t("calculator.microsteps")} value={micro} onChange={setMicro} suffix="x" />
+        <Field label={t("calculator.gearDiameter")} value={dia} onChange={setDia} suffix="mm" />
+        <Field label={t("calculator.gearRatio")} value={ratio} onChange={setRatio} suffix=":1" />
       </div>
-      <Result label="Steps/mm extrudeur" value={result.toFixed(2)} unit="steps/mm" />
+      <Result label={t("calculator.extruderResult")} value={result.toFixed(2)} unit="steps/mm" />
     </div>
   );
 }
 
 function BeltCalc() {
+  const { t } = useI18n();
   const [steps, setSteps] = useState(200);
   const [micro, setMicro] = useState(16);
   const [pitch, setPitch] = useState(2);
@@ -102,32 +108,33 @@ function BeltCalc() {
   const result = (steps * micro) / (pitch * teeth);
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Steps/mm pour un axe à courroie crantée (GT2).</p>
+      <p className="text-sm text-muted-foreground">{t("calculator.beltDesc")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Steps par tour" value={steps} onChange={setSteps} suffix="steps" />
-        <Field label="Microsteps" value={micro} onChange={setMicro} suffix="x" />
-        <Field label="Pas courroie" value={pitch} onChange={setPitch} suffix="mm" />
-        <Field label="Dents poulie" value={teeth} onChange={setTeeth} suffix="dents" />
+        <Field label={t("calculator.stepsPerTurn")} value={steps} onChange={setSteps} suffix="steps" />
+        <Field label={t("calculator.microsteps")} value={micro} onChange={setMicro} suffix="x" />
+        <Field label={t("calculator.beltPitch")} value={pitch} onChange={setPitch} suffix="mm" />
+        <Field label={t("calculator.pulleyTeeth")} value={teeth} onChange={setTeeth} suffix="dents" />
       </div>
-      <Result label="Steps/mm" value={result.toFixed(2)} unit="steps/mm" />
+      <Result label={t("calculator.stepsResult")} value={result.toFixed(2)} unit="steps/mm" />
     </div>
   );
 }
 
 function LeadscrewCalc() {
+  const { t } = useI18n();
   const [steps, setSteps] = useState(200);
   const [micro, setMicro] = useState(16);
   const [lead, setLead] = useState(8);
   const result = (steps * micro) / lead;
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Steps/mm pour une vis à billes (lead screw).</p>
+      <p className="text-sm text-muted-foreground">{t("calculator.leadscrewDesc")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Steps par tour" value={steps} onChange={setSteps} suffix="steps" />
-        <Field label="Microsteps" value={micro} onChange={setMicro} suffix="x" />
-        <Field label="Lead (pas par tour)" value={lead} onChange={setLead} suffix="mm/tr" />
+        <Field label={t("calculator.stepsPerTurn")} value={steps} onChange={setSteps} suffix="steps" />
+        <Field label={t("calculator.microsteps")} value={micro} onChange={setMicro} suffix="x" />
+        <Field label={t("calculator.lead")} value={lead} onChange={setLead} suffix="mm/tr" />
       </div>
-      <Result label="Steps/mm" value={result.toFixed(2)} unit="steps/mm" />
+      <Result label={t("calculator.stepsResult")} value={result.toFixed(2)} unit="steps/mm" />
     </div>
   );
 }

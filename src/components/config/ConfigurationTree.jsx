@@ -2,12 +2,14 @@ import React from "react";
 import { useProject } from "@/lib/projectStore";
 import { CATEGORIES, SYSTEM_FILES } from "@/lib/marlinKnowledge";
 import { cn } from "@/lib/utils";
-import { Settings, Box, Cpu, Move, Flame, CircleDot, Square, Crosshair, Layers, Zap, Monitor, Save, Wifi, ShieldCheck, Wrench, Hash, FileCode } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { Settings, Box, Cpu, Move, Flame, CircleDot, Square, Crosshair, Layers, Zap, Monitor, Save, Wifi, ShieldCheck, Wrench, Hash, FileCode, ToggleLeft } from "lucide-react";
 
-const ICONS = { Settings, Box, Cpu, Move, Flame, CircleDot, Square, Crosshair, Layers, Zap, Monitor, Save, Wifi, ShieldCheck, Wrench };
+const ICONS = { Settings, Box, Cpu, Move, Flame, CircleDot, Square, Crosshair, Layers, Zap, Monitor, Save, Wifi, ShieldCheck, Wrench, ToggleLeft };
 
 export default function ConfigurationTree() {
   const { currentProject, state, setCategory, toggleFileActive } = useProject();
+  const { t, categoryMeta } = useI18n();
   const allParams = currentProject?.allParameters || [];
   const activeFiles = currentProject?.activeFiles || {};
   const selected = state.selectedCategory;
@@ -24,7 +26,7 @@ export default function ConfigurationTree() {
     <div className="flex flex-col h-full">
       {/* Fichiers système */}
       <div className="px-3 py-2 border-b border-border">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Fichiers système</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">{t("config.systemFiles")}</div>
         <div className="space-y-0.5">
           {projectFiles.map((f) => {
             const meta = SYSTEM_FILES.find((s) => s.name === f);
@@ -55,7 +57,7 @@ export default function ConfigurationTree() {
           onClick={() => setCategory(null)}
           className={cn("w-full flex items-center justify-between px-3 py-1.5 text-sm", !selected ? "bg-accent font-medium" : "hover:bg-accent/50")}
         >
-          <span>Tous les paramètres</span>
+          <span>{t("config.all")}</span>
           <span className="text-xs text-muted-foreground">{params.length}</span>
         </button>
         {CATEGORIES.map((cat) => {
@@ -69,7 +71,7 @@ export default function ConfigurationTree() {
             >
               <span className="flex items-center gap-2 min-w-0">
                 <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">{cat.name}</span>
+                <span className="truncate">{categoryMeta(cat.id, cat).name || cat.name}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 {counts[cat.id] > 0 && <span className="text-[10px] text-blue-500">{counts[cat.id]}</span>}

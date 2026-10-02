@@ -2,18 +2,15 @@ import React, { useMemo } from "react";
 import { useProject } from "@/lib/projectStore";
 import { DEPENDENCIES } from "@/lib/marlinKnowledge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import { RotateCcw, AlertTriangle, Link2, FileCode } from "lucide-react";
 
-const FILTERS = [
-  { id: "all", label: "Tous" },
-  { id: "modified", label: "Modifiés" },
-  { id: "enabled", label: "Activés" },
-  { id: "disabled", label: "Désactivés" },
-  { id: "warnings", label: "Avec dépendance manquante" },
-];
+const FILTER_IDS = ["all", "modified", "enabled", "disabled", "warnings"];
 
-export default function ParameterList({ onPick }) {
+export default function ParameterList({ onPick = null }) {
   const { currentProject, state, selectParameter, setFilter, resetParam } = useProject();
+  const { t } = useI18n();
+  const FILTERS = FILTER_IDS.map(id => ({ id, label: t(`config.filters.${id}`) }));
   const activeFiles = currentProject?.activeFiles || {};
   const params = (currentProject?.allParameters || []).filter((p) => activeFiles[p.file] !== false);
   const selected = state.selectedParameterId;
@@ -64,7 +61,7 @@ export default function ParameterList({ onPick }) {
                 <div className="flex items-center gap-2">
                   <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", p.enabled ? "bg-emerald-500" : "bg-muted-foreground/30")} />
                   <span className="font-mono text-sm truncate">{p.name}</span>
-                  {p.modified && <span className="text-[10px] text-blue-500 font-medium">MOD</span>}
+                  {p.modified && <span className="text-[10px] text-blue-500 font-medium">{t("config.modified")}</span>}
                   {depWarn && <AlertTriangle className="w-3 h-3 text-amber-500" />}
                 </div>
                 <div className="text-xs text-muted-foreground truncate mt-0.5">{p.description || "Paramètre non documenté"}</div>
@@ -77,7 +74,7 @@ export default function ParameterList({ onPick }) {
                 <button
                   onClick={(e) => { e.stopPropagation(); resetParam(currentProject.id, p.file, p); }}
                   className="text-muted-foreground hover:text-foreground p-1"
-                  title="Réinitialiser"
+                  title={t("config.reset")}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -86,7 +83,7 @@ export default function ParameterList({ onPick }) {
           );
         })}
         {filtered.length === 0 && (
-          <div className="px-3 py-8 text-center text-sm text-muted-foreground">Aucun paramètre</div>
+          <div className="px-3 py-8 text-center text-sm text-muted-foreground">{t("config.noParam")}</div>
         )}
       </div>
     </div>

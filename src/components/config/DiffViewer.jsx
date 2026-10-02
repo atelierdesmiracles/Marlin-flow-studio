@@ -2,9 +2,11 @@ import React, { useMemo } from "react";
 import { useProject, computeDiff } from "@/lib/projectStore";
 import { cn } from "@/lib/utils";
 import { GitCompareArrows, Minus, Plus } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function DiffViewer() {
   const { currentProject } = useProject();
+  const { t } = useI18n();
   const diffs = useMemo(() => (currentProject ? computeDiff(currentProject) : []), [currentProject]);
 
   if (!currentProject) return <Empty />;
@@ -13,11 +15,11 @@ export default function DiffViewer() {
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
         <GitCompareArrows className="w-4 h-4" />
-        <h2 className="text-sm font-semibold">Comparateur — {diffs.length} changement(s)</h2>
+        <h2 className="text-sm font-semibold">{t("diff.title")} — {diffs.length} {t("diff.changes")}</h2>
         <span className="ml-auto text-xs text-muted-foreground">{currentProject.name}</span>
       </div>
       <div className="flex-1 overflow-y-auto font-mono text-xs">
-        {diffs.length === 0 && <div className="px-4 py-8 text-center text-muted-foreground">Aucun changement. La configuration correspond à l'originale.</div>}
+        {diffs.length === 0 && <div className="px-4 py-8 text-center text-muted-foreground">{t("diff.empty")}</div>}
         {diffs.map((d, i) => (
           <div key={i} className="border-b border-border/50">
             <div className="px-4 py-1.5 bg-muted/50 flex items-center gap-2">
@@ -41,5 +43,6 @@ export default function DiffViewer() {
 }
 
 function Empty() {
-  return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Aucun projet sélectionné</div>;
+  const { t } = useI18n();
+  return <div className="flex items-center justify-center h-full text-muted-foreground text-sm">{t("diff.noneProject")}</div>;
 }
